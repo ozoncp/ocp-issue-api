@@ -18,26 +18,26 @@ const (
 
 type Issue struct {
 	Id          uint64
+	ClassroomId uint64
 	TaskId      uint64
 	UserId      uint64
-	Description string
-	State       State
 	Deadline    time.Time
 }
 
-func New(id uint64, taskId uint64, description string) *Issue {
+func New(id uint64, classroomId uint64, taskId uint64, userId uint64, deadline time.Time) *Issue {
 	issue := new(Issue)
 	issue.Id = id
+	issue.ClassroomId = classroomId
 	issue.TaskId = taskId
-	issue.Description = description
-	issue.State = Created
+	issue.UserId = userId
+	issue.Deadline = deadline
 
 	return issue
 }
 
 func (issue *Issue) String() string {
 	return fmt.Sprintf(
-		"Issue(Id=%d, TaskId=%d, UserId=%d, Description=\"%s\", State=%d, Deadline=%s)",
-		issue.Id, issue.TaskId, issue.UserId, issue.Description, issue.State, issue.Deadline.String(),
+		"Issue(Id=%d, ClassroomId=%d, TaskId=%d, UserId=%d, Deadline=%s)",
+		issue.Id, issue.ClassroomId, issue.TaskId, issue.UserId, issue.Deadline.String(),
 	)
 }

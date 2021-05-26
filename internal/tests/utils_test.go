@@ -40,10 +40,10 @@ func TestSplitToChunks(t *testing.T) {
 
 func TestSplitIssuesToChunks(t *testing.T) {
 	slice := []issues.Issue{
-		{1, 1, 42, "the 1st issue", issues.Assigned, time.Now()},
-		{2, 2, 42, "the 2nd issue", issues.OnReview, time.Now()},
-		{3, 3, 0, "the 3rd issue", issues.Created, time.Now()},
-		{4, 3, 23, "the 4th issue", issues.Completed, time.Now()},
+		{1, 1, 1, 42, time.Now()},
+		{2, 1, 2, 42, time.Now()},
+		{3, 2, 3, 0, time.Now()},
+		{4, 1, 3, 23, time.Now()},
 	}
 
 	chunksOf2 := utils.SplitIssuesToChunks(slice, 2)
@@ -98,10 +98,10 @@ func TestDeleteValues(t *testing.T) {
 
 func TestSliceToMap(t *testing.T) {
 	issuesSlice := []issues.Issue{
-		{1, 1, 42, "the 1st issue", issues.Assigned, time.Now()},
-		{2, 2, 42, "the 2nd issue", issues.OnReview, time.Now()},
-		{3, 3, 0, "the 3rd issue", issues.Created, time.Now()},
-		{4, 3, 23, "the 4th issue", issues.Completed, time.Now()},
+		{1, 1, 1, 42, time.Now()},
+		{2, 1, 2, 42, time.Now()},
+		{3, 2, 3, 0, time.Now()},
+		{4, 1, 3, 23, time.Now()},
 	}
 
 	issuesMap := utils.SliceToMap(issuesSlice)
