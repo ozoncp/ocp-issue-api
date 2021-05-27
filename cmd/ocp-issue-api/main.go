@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"os"
@@ -17,7 +16,7 @@ func readFile(filename string, times uint64) {
 				fmt.Printf("error: %s", err)
 			}
 
-			_, err = io.Copy(os.Stdout, bufio.NewReader(file))
+			_, err = io.Copy(os.Stdout, file)
 
 			if err != nil {
 				fmt.Printf("error: %s", err)

@@ -5,17 +5,6 @@ import (
 	"time"
 )
 
-type State uint
-
-const (
-	Created State = iota
-	Assigned
-	InProgress
-	Completed
-	OnReview
-	Approved
-)
-
 type Issue struct {
 	Id          uint64
 	ClassroomId uint64
