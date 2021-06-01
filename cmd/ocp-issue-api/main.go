@@ -12,6 +12,14 @@ func readFile(filename string, times uint64) {
 		func() {
 			file, err := os.Open(filename)
 
+			defer func() {
+				err = file.Close()
+
+				if err != nil {
+					fmt.Printf("error: %s", err)
+				}
+			}()
+
 			if err != nil {
 				fmt.Printf("error: %s", err)
 			}
@@ -21,14 +29,6 @@ func readFile(filename string, times uint64) {
 			if err != nil {
 				fmt.Printf("error: %s", err)
 			}
-
-			defer func() {
-				err = file.Close()
-
-				if err != nil {
-					fmt.Printf("error: %s", err)
-				}
-			}()
 		}()
 	}
 }
