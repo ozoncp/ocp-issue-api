@@ -3,7 +3,7 @@ package utils_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/ozoncp/ocp-issue-api/internal/issues"
+	. "github.com/ozoncp/ocp-issue-api/internal/models"
 	. "github.com/ozoncp/ocp-issue-api/internal/utils"
 	"time"
 )

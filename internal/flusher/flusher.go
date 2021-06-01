@@ -19,7 +19,7 @@ func (flusher *flusher) Flush(issues []models.Issue) []models.Issue {
 	for index, chunk := range utils.SplitIssuesToChunks(issues, flusher.chuckSize) {
 
 		if err := flusher.repo.AddIssues(chunk); err != nil {
-			return issues[:index*flusher.chuckSize]
+			return issues[index*flusher.chuckSize:]
 		}
 	}
 
