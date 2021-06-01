@@ -1,4 +1,4 @@
-package issues_test
+package models_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -9,5 +9,5 @@ import (
 
 func TestIssues(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Issues Suite")
+	RunSpecs(t, "Models Suite")
 }

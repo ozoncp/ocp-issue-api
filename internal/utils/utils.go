@@ -1,6 +1,6 @@
 package utils
 
-import "github.com/ozoncp/ocp-issue-api/internal/issues"
+import "github.com/ozoncp/ocp-issue-api/internal/models"
 
 func SplitIntegersToChunks(slice []int, chunkSize int) (chunks [][]int) {
 	if chunkSize <= 0 {
@@ -16,7 +16,7 @@ func SplitIntegersToChunks(slice []int, chunkSize int) (chunks [][]int) {
 	return chunks
 }
 
-func SplitIssuesToChunks(issues []issues.Issue, chunkSize int) (chunks [][]issues.Issue) {
+func SplitIssuesToChunks(issues []models.Issue, chunkSize int) (chunks [][]models.Issue) {
 	if chunkSize <= 0 {
 		panic("Only positive value of chunkSize is possible!")
 	}
@@ -50,8 +50,8 @@ func DeleteValues(source []int, values []int) (filtered []int) {
 	return filtered
 }
 
-func SliceToMap(slice []issues.Issue) map[uint64]issues.Issue {
-	result := make(map[uint64]issues.Issue, len(slice))
+func SliceToMap(slice []models.Issue) map[uint64]models.Issue {
+	result := make(map[uint64]models.Issue, len(slice))
 
 	for _, issue := range slice {
 		result[issue.Id] = issue

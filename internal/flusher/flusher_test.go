@@ -5,8 +5,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/ozoncp/ocp-issue-api/internal/flusher"
-	. "github.com/ozoncp/ocp-issue-api/internal/issues"
 	"github.com/ozoncp/ocp-issue-api/internal/mocks"
+	"github.com/ozoncp/ocp-issue-api/internal/models"
 	"time"
 )
 
@@ -16,8 +16,8 @@ var _ = Describe("Flusher", func() {
 		mockRepo *mocks.MockRepo
 		f        flusher.Flusher
 
-		issues []Issue
-		rest   []Issue
+		issues []models.Issue
+		rest   []models.Issue
 
 		chunkSize int
 	)
@@ -30,7 +30,7 @@ var _ = Describe("Flusher", func() {
 
 		f = flusher.New(mockRepo, chunkSize)
 
-		issues = []Issue{
+		issues = []models.Issue{
 			{1, 1, 1, 42, time.Now()},
 			{2, 1, 2, 42, time.Now()},
 			{3, 2, 3, 0, time.Now()},
@@ -46,7 +46,7 @@ var _ = Describe("Flusher", func() {
 		ctrl.Finish()
 	})
 
-	Context("repo save all issues", func() {
+	Context("repo save all models", func() {
 		BeforeEach(func() {
 			mockRepo.EXPECT().AddIssues(gomock.Any()).Return(nil).MinTimes(3)
 		})

@@ -8,7 +8,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	issues "github.com/ozoncp/ocp-issue-api/internal/issues"
+	models "github.com/ozoncp/ocp-issue-api/internal/models"
 )
 
 // MockFlusher is a mock of Flusher interface.
@@ -35,10 +35,10 @@ func (m *MockFlusher) EXPECT() *MockFlusherMockRecorder {
 }
 
 // Flush mocks base method.
-func (m *MockFlusher) Flush(arg0 []issues.Issue) []issues.Issue {
+func (m *MockFlusher) Flush(arg0 []models.Issue) []models.Issue {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Flush", arg0)
-	ret0, _ := ret[0].([]issues.Issue)
+	ret0, _ := ret[0].([]models.Issue)
 	return ret0
 }
 

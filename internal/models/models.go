@@ -1,4 +1,4 @@
-package issues
+package models
 
 import (
 	"fmt"
@@ -11,17 +11,6 @@ type Issue struct {
 	TaskId      uint64
 	UserId      uint64
 	Deadline    time.Time
-}
-
-func New(id uint64, classroomId uint64, taskId uint64, userId uint64, deadline time.Time) *Issue {
-	issue := new(Issue)
-	issue.Id = id
-	issue.ClassroomId = classroomId
-	issue.TaskId = taskId
-	issue.UserId = userId
-	issue.Deadline = deadline
-
-	return issue
 }
 
 func (issue *Issue) String() string {

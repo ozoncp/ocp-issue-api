@@ -1,17 +1,17 @@
-package issues_test
+package models_test
 
 import (
 	"fmt"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/ozoncp/ocp-issue-api/internal/issues"
+	"github.com/ozoncp/ocp-issue-api/internal/models"
 	"time"
 )
 
-var _ = Describe("Issues", func() {
-	Context("conversion to string", func() {
-		It("", func() {
-			issue := New(1, 2, 3, 4, time.Now())
+var _ = Describe("Models", func() {
+	Context("Issues", func() {
+		It("conversion to string", func() {
+			issue := models.Issue{Id: 1, ClassroomId: 2, TaskId: 3, UserId: 4, Deadline: time.Now()}
 
 			excepted :=  fmt.Sprintf(
 				"Issue(Id=%d, ClassroomId=%d, TaskId=%d, UserId=%d, Deadline=%s)",

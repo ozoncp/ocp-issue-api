@@ -8,7 +8,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	issues "github.com/ozoncp/ocp-issue-api/internal/issues"
+	models "github.com/ozoncp/ocp-issue-api/internal/models"
 )
 
 // MockRepo is a mock of Repo interface.
@@ -35,7 +35,7 @@ func (m *MockRepo) EXPECT() *MockRepoMockRecorder {
 }
 
 // AddIssue mocks base method.
-func (m *MockRepo) AddIssue(arg0 issues.Issue) (uint64, error) {
+func (m *MockRepo) AddIssue(arg0 models.Issue) (uint64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddIssue", arg0)
 	ret0, _ := ret[0].(uint64)
@@ -50,7 +50,7 @@ func (mr *MockRepoMockRecorder) AddIssue(arg0 interface{}) *gomock.Call {
 }
 
 // AddIssues mocks base method.
-func (m *MockRepo) AddIssues(arg0 []issues.Issue) error {
+func (m *MockRepo) AddIssues(arg0 []models.Issue) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddIssues", arg0)
 	ret0, _ := ret[0].(error)
@@ -64,10 +64,10 @@ func (mr *MockRepoMockRecorder) AddIssues(arg0 interface{}) *gomock.Call {
 }
 
 // DescribeIssue mocks base method.
-func (m *MockRepo) DescribeIssue(arg0 uint64) (*issues.Issue, error) {
+func (m *MockRepo) DescribeIssue(arg0 uint64) (*models.Issue, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DescribeIssue", arg0)
-	ret0, _ := ret[0].(*issues.Issue)
+	ret0, _ := ret[0].(*models.Issue)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -79,10 +79,10 @@ func (mr *MockRepoMockRecorder) DescribeIssue(arg0 interface{}) *gomock.Call {
 }
 
 // ListIssues mocks base method.
-func (m *MockRepo) ListIssues(arg0, arg1 uint64) ([]issues.Issue, error) {
+func (m *MockRepo) ListIssues(arg0, arg1 uint64) ([]models.Issue, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListIssues", arg0, arg1)
-	ret0, _ := ret[0].([]issues.Issue)
+	ret0, _ := ret[0].([]models.Issue)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
