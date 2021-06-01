@@ -2,7 +2,7 @@ package utils
 
 import "github.com/ozoncp/ocp-issue-api/internal/issues"
 
-func SplitToChunks(slice []int, chunkSize int) (chunks [][]int) {
+func SplitIntegersToChunks(slice []int, chunkSize int) (chunks [][]int) {
 	if chunkSize <= 0 {
 		panic("Only positive value of chunkSize is possible!")
 	}
