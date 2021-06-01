@@ -18,12 +18,12 @@ var _ = Describe("Utils", func() {
 			integers = []int{1, 2, 3, 4, 5, 6}
 
 			issues = []Issue{
-				{1, 1, 1, 42, time.Now()},
-				{2, 1, 2, 42, time.Now()},
-				{3, 2, 3, 0, time.Now()},
-				{4, 1, 3, 23, time.Now()},
-				{5, 3, 4, 24, time.Now()},
-				{6, 3, 5, 25, time.Now()},
+				{Id: 1, ClassroomId: 1, TaskId: 1, UserId: 42, Deadline: time.Now()},
+				{Id: 2, ClassroomId: 1, TaskId: 2, UserId: 42, Deadline: time.Now()},
+				{Id: 3, ClassroomId: 2, TaskId: 3, Deadline: time.Now()},
+				{Id: 4, ClassroomId: 1, TaskId: 3, UserId: 23, Deadline: time.Now()},
+				{Id: 5, ClassroomId: 3, TaskId: 4, UserId: 24, Deadline: time.Now()},
+				{Id: 6, ClassroomId: 3, TaskId: 5, UserId: 25, Deadline: time.Now()},
 			}
 		})
 
@@ -188,13 +188,14 @@ var _ = Describe("Utils", func() {
 
 	Context("SliceToMap", func() {
 		It("", func() {
-			issues := []Issue{
-				{1, 1, 1, 42, time.Now()},
-				{2, 1, 2, 42, time.Now()},
-				{3, 2, 3, 0, time.Now()},
-				{4, 1, 3, 23, time.Now()},
-			}
-
+			var (
+				issues = []Issue{
+					{Id: 1, ClassroomId: 1, TaskId: 1, UserId: 42, Deadline: time.Now()},
+					{Id: 2, ClassroomId: 1, TaskId: 2, UserId: 42, Deadline: time.Now()},
+					{Id: 3, ClassroomId: 2, TaskId: 3, Deadline: time.Now()},
+					{Id: 4, ClassroomId: 1, TaskId: 3, UserId: 23, Deadline: time.Now()},
+				}
+			)
 			issuesMap := SliceToMap(issues)
 
 			Expect(len(issuesMap)).Should(BeEquivalentTo(len(issues)))
