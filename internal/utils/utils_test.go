@@ -5,7 +5,6 @@ import (
 	. "github.com/onsi/gomega"
 	. "github.com/ozoncp/ocp-issue-api/internal/models"
 	. "github.com/ozoncp/ocp-issue-api/internal/utils"
-	"time"
 )
 
 var _ = Describe("Utils", func() {
@@ -16,15 +15,7 @@ var _ = Describe("Utils", func() {
 
 		BeforeEach(func() {
 			integers = []int{1, 2, 3, 4, 5, 6}
-
-			issues = []Issue{
-				{Id: 1, ClassroomId: 1, TaskId: 1, UserId: 42, Deadline: time.Now()},
-				{Id: 2, ClassroomId: 1, TaskId: 2, UserId: 42, Deadline: time.Now()},
-				{Id: 3, ClassroomId: 2, TaskId: 3, Deadline: time.Now()},
-				{Id: 4, ClassroomId: 1, TaskId: 3, UserId: 23, Deadline: time.Now()},
-				{Id: 5, ClassroomId: 3, TaskId: 4, UserId: 24, Deadline: time.Now()},
-				{Id: 6, ClassroomId: 3, TaskId: 5, UserId: 25, Deadline: time.Now()},
-			}
+			issues = []Issue{{Id: 1}, {Id: 2}, {Id: 3}, {Id: 4}, {Id: 5}, {Id: 6}}
 		})
 
 		Context("slice split to chunks of 2", func() {
@@ -187,17 +178,15 @@ var _ = Describe("Utils", func() {
 	})
 
 	Context("SliceToMap", func() {
-		It("", func() {
-			var (
-				issues = []Issue{
-					{Id: 1, ClassroomId: 1, TaskId: 1, UserId: 42, Deadline: time.Now()},
-					{Id: 2, ClassroomId: 1, TaskId: 2, UserId: 42, Deadline: time.Now()},
-					{Id: 3, ClassroomId: 2, TaskId: 3, Deadline: time.Now()},
-					{Id: 4, ClassroomId: 1, TaskId: 3, UserId: 23, Deadline: time.Now()},
-				}
-			)
-			issuesMap := SliceToMap(issues)
+		var issues []Issue
+		var issuesMap map[uint64]Issue
 
+		BeforeEach(func() {
+			issues = []Issue{{Id: 1}, {Id: 2}, {Id: 3}, {Id: 4}}
+			issuesMap = SliceToMap(issues)
+		})
+
+		It("", func() {
 			Expect(len(issuesMap)).Should(BeEquivalentTo(len(issues)))
 
 			for i := 0; i < len(issues); i++ {

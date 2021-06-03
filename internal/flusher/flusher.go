@@ -15,11 +15,11 @@ type flusher struct {
 	chuckSize int
 }
 
-func (flusher *flusher) Flush(issues []models.Issue) []models.Issue {
-	for index, chunk := range utils.SplitIssuesToChunks(issues, flusher.chuckSize) {
+func (f *flusher) Flush(issues []models.Issue) []models.Issue {
+	for index, chunk := range utils.SplitIssuesToChunks(issues, f.chuckSize) {
 
-		if err := flusher.repo.AddIssues(chunk); err != nil {
-			return issues[index*flusher.chuckSize:]
+		if err := f.repo.AddIssues(chunk); err != nil {
+			return issues[index*f.chuckSize:]
 		}
 	}
 

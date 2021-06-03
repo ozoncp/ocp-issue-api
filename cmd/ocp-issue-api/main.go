@@ -12,6 +12,10 @@ func readFile(filename string, times uint64) {
 		func() {
 			file, err := os.Open(filename)
 
+			if err != nil {
+				fmt.Printf("error: %s", err)
+			}
+
 			defer func() {
 				err = file.Close()
 
@@ -19,10 +23,6 @@ func readFile(filename string, times uint64) {
 					fmt.Printf("error: %s", err)
 				}
 			}()
-
-			if err != nil {
-				fmt.Printf("error: %s", err)
-			}
 
 			_, err = io.Copy(os.Stdout, file)
 

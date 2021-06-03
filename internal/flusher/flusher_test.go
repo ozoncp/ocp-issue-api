@@ -5,17 +5,16 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/ozoncp/ocp-issue-api/internal/flusher"
+	"github.com/ozoncp/ocp-issue-api/internal/flusher"
 	"github.com/ozoncp/ocp-issue-api/internal/mocks"
 	"github.com/ozoncp/ocp-issue-api/internal/models"
-	"time"
 )
 
 var _ = Describe("Flusher", func() {
 	var (
 		ctrl     *gomock.Controller
 		mockRepo *mocks.MockRepo
-		flusher  Flusher
+		f  flusher.Flusher
 
 		issues []models.Issue
 		rest   []models.Issue
@@ -28,20 +27,12 @@ var _ = Describe("Flusher", func() {
 		mockRepo = mocks.NewMockRepo(ctrl)
 
 		chunkSize = 2
-
-		issues = []models.Issue{
-			{Id: 1, ClassroomId: 1, TaskId: 1, UserId: 42, Deadline: time.Now()},
-			{Id: 2, ClassroomId: 1, TaskId: 2, UserId: 42, Deadline: time.Now()},
-			{Id: 3, ClassroomId: 2, TaskId: 3, Deadline: time.Now()},
-			{Id: 4, ClassroomId: 1, TaskId: 3, UserId: 23, Deadline: time.Now()},
-			{Id: 5, ClassroomId: 3, TaskId: 4, UserId: 24, Deadline: time.Now()},
-			{Id: 6, ClassroomId: 3, TaskId: 5, UserId: 25, Deadline: time.Now()},
-		}
+		issues = []models.Issue{{Id: 1}, {Id: 2}, {Id: 3}, {Id: 4}, {Id: 5}, {Id: 6}}
 	})
 
 	JustBeforeEach(func() {
-		flusher = New(mockRepo, chunkSize)
-		rest = flusher.Flush(issues)
+		f = flusher.New(mockRepo, chunkSize)
+		rest = f.Flush(issues)
 	})
 
 	AfterEach(func() {
@@ -50,7 +41,11 @@ var _ = Describe("Flusher", func() {
 
 	Context("repo save all issues", func() {
 		BeforeEach(func() {
-			mockRepo.EXPECT().AddIssues(gomock.Len(chunkSize)).Return(nil).Times(3)
+			gomock.InOrder(
+				mockRepo.EXPECT().AddIssues([]models.Issue{{Id: 1},{Id: 2}}).Return(nil),
+				mockRepo.EXPECT().AddIssues([]models.Issue{{Id: 3},{Id: 4}}).Return(nil),
+				mockRepo.EXPECT().AddIssues([]models.Issue{{Id: 5},{Id: 6}}).Return(nil),
+			)
 		})
 
 		It("", func() {
@@ -60,7 +55,7 @@ var _ = Describe("Flusher", func() {
 
 	Context("repo don't save issues", func() {
 		BeforeEach(func() {
-			mockRepo.EXPECT().AddIssues(gomock.Len(chunkSize)).Return(errors.New("can't save issues"))
+			mockRepo.EXPECT().AddIssues([]models.Issue{{Id: 1},{Id: 2}}).Return(errors.New("can't save issues"))
 		})
 
 		It("", func() {
@@ -69,19 +64,16 @@ var _ = Describe("Flusher", func() {
 	})
 
 	Context("repo save not all issues", func() {
-		var addedIssuesCount int
-
 		BeforeEach(func() {
-			addedIssuesCount = len(issues) - chunkSize
-
 			gomock.InOrder(
-				mockRepo.EXPECT().AddIssues(gomock.Len(chunkSize)).Return(nil).Times(2),
-				mockRepo.EXPECT().AddIssues(gomock.Len(chunkSize)).Return(errors.New("can't save issues")),
+				mockRepo.EXPECT().AddIssues([]models.Issue{{Id: 1},{Id: 2}}).Return(nil),
+				mockRepo.EXPECT().AddIssues([]models.Issue{{Id: 3},{Id: 4}}).Return(nil),
+				mockRepo.EXPECT().AddIssues([]models.Issue{{Id: 5},{Id: 6}}).Return(errors.New("can't save issues")),
 			)
 		})
 
 		It("", func() {
-			Expect(rest).Should(BeEquivalentTo(issues[addedIssuesCount:]))
+			Expect(rest).Should(BeEquivalentTo([]models.Issue{{Id: 5},{Id: 6}}))
 		})
 	})
 })
