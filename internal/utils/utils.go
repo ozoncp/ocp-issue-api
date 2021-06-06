@@ -8,7 +8,7 @@ func SplitIntegersToChunks(slice []int, chunkSize int) (chunks [][]int) {
 	}
 
 	for begin := 0; begin < len(slice); {
-		end := min(begin + chunkSize, len(slice))
+		end := min(begin+chunkSize, len(slice))
 		chunks = append(chunks, slice[begin:end])
 		begin = end
 	}
@@ -22,7 +22,7 @@ func SplitIssuesToChunks(issues []models.Issue, chunkSize int) (chunks [][]model
 	}
 
 	for begin := 0; begin < len(issues); {
-		end := min(begin + chunkSize, len(issues))
+		end := min(begin+chunkSize, len(issues))
 		chunks = append(chunks, issues[begin:end])
 		begin = end
 	}
