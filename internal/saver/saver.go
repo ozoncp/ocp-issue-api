@@ -41,11 +41,9 @@ func (s *saver) Init() {
 						switch s.overflowPolicy {
 						case ClearBuffer:
 							s.buffer = make([]models.Issue, 0, cap(s.buffer))
-							break
 
 						case RemoveOldest:
 							s.buffer = s.buffer[1:]
-							break
 						}
 					}
 
