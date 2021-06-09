@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+import "github.com/envoyproxy/protoc-gen-validate/validate/validate.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+package ocp.issue.api;
+
+option go_package = "gihtub.com/ozoncp/ocp-issue-api/pkg/ocp-issue-api;ocp_issue_api";
+
+// CRUD service of issues
+service OcpIssueApi {
+
+  // Returns list of issues
+  rpc ListIssuesV1(ListIssuesV1Request) returns (ListIssuesV1Response) {
+    option (google.api.http) = {
+      get: "/api/v1/issues"
+    };
+  }
+
+  // Create new issue
+  rpc CreateIssueV1(CreateIssueV1Request) returns (CreateIssueV1Response) {
+    option (google.api.http) = {
+      post: "/api/v1/issues",
+      body: "*",
+    };
+  }
+
+  // Get the issue
+  rpc DescribeIssueV1(DescribeIssueV1Request) returns (DescribeIssueV1Response) {
+    option (google.api.http) = {
+      get: "/api/v1/issues/{issue_id}"
+    };
+  }
+
+  // Update the issue
+  rpc UpdateIssueV1(UpdateIssueV1Request) returns (UpdateIssueV1Response) {
+    option (google.api.http) = {
+      put: "/api/v1/issues/{issue_id}",
+      body: "*",
+    };
+  }
+
+  // Remove the issue
+  rpc RemoveIssueV1(RemoveIssueV1Request) returns (RemoveIssueV1Response) {
+    option (google.api.http) = {
+      delete: "/api/v1/issues/{issue_id}"
+    };
+  }
+}
+
+// Issue
+message Issue {
+  uint64 id = 1;
+  uint64 classroom_id = 2;
+  uint64 task_id = 3;
+  uint64 user_id = 4;
+  google.protobuf.Timestamp deadline = 5;
+}
+
+message ListIssuesV1Request {
+  uint64 limit = 1;
+  uint64 offset = 2;
+}
+
+message ListIssuesV1Response {
+  repeated Issue issues = 1;
+}
+
+message CreateIssueV1Request {
+  uint64 classroom_id = 1;
+  uint64 task_id = 2;
+  uint64 user_id = 3;
+  google.protobuf.Timestamp deadline = 4;
+}
+
+message CreateIssueV1Response {
+  uint64 issue_id = 1;
+}
+
+message DescribeIssueV1Request {
+  uint64 issue_id = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message DescribeIssueV1Response {
+  Issue issue = 1;
+}
+
+message UpdateIssueV1Request {
+  uint64 issue_id = 1;
+  uint64 classroom_id = 2;
+  uint64 task_id = 3;
+  uint64 user_id = 4;
+  google.protobuf.Timestamp deadline = 5;
+}
+
+message UpdateIssueV1Response {
+  bool found = 1;
+}
+
+message RemoveIssueV1Request {
+  uint64 issue_id = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message RemoveIssueV1Response {
+  bool found = 1;
+}
