@@ -14,7 +14,7 @@ var _ = Describe("Flusher", func() {
 	var (
 		ctrl     *gomock.Controller
 		mockRepo *mocks.MockRepo
-		f  flusher.Flusher
+		f        flusher.Flusher
 
 		issues []models.Issue
 		rest   []models.Issue
@@ -42,9 +42,9 @@ var _ = Describe("Flusher", func() {
 	Context("repo save all issues", func() {
 		BeforeEach(func() {
 			gomock.InOrder(
-				mockRepo.EXPECT().AddIssues([]models.Issue{{Id: 1},{Id: 2}}).Return(nil),
-				mockRepo.EXPECT().AddIssues([]models.Issue{{Id: 3},{Id: 4}}).Return(nil),
-				mockRepo.EXPECT().AddIssues([]models.Issue{{Id: 5},{Id: 6}}).Return(nil),
+				mockRepo.EXPECT().AddIssues([]models.Issue{{Id: 1}, {Id: 2}}).Return(nil),
+				mockRepo.EXPECT().AddIssues([]models.Issue{{Id: 3}, {Id: 4}}).Return(nil),
+				mockRepo.EXPECT().AddIssues([]models.Issue{{Id: 5}, {Id: 6}}).Return(nil),
 			)
 		})
 
@@ -55,7 +55,7 @@ var _ = Describe("Flusher", func() {
 
 	Context("repo don't save issues", func() {
 		BeforeEach(func() {
-			mockRepo.EXPECT().AddIssues([]models.Issue{{Id: 1},{Id: 2}}).Return(errors.New("can't save issues"))
+			mockRepo.EXPECT().AddIssues([]models.Issue{{Id: 1}, {Id: 2}}).Return(errors.New("can't save issues"))
 		})
 
 		It("", func() {
@@ -66,14 +66,14 @@ var _ = Describe("Flusher", func() {
 	Context("repo save not all issues", func() {
 		BeforeEach(func() {
 			gomock.InOrder(
-				mockRepo.EXPECT().AddIssues([]models.Issue{{Id: 1},{Id: 2}}).Return(nil),
-				mockRepo.EXPECT().AddIssues([]models.Issue{{Id: 3},{Id: 4}}).Return(nil),
-				mockRepo.EXPECT().AddIssues([]models.Issue{{Id: 5},{Id: 6}}).Return(errors.New("can't save issues")),
+				mockRepo.EXPECT().AddIssues([]models.Issue{{Id: 1}, {Id: 2}}).Return(nil),
+				mockRepo.EXPECT().AddIssues([]models.Issue{{Id: 3}, {Id: 4}}).Return(nil),
+				mockRepo.EXPECT().AddIssues([]models.Issue{{Id: 5}, {Id: 6}}).Return(errors.New("can't save issues")),
 			)
 		})
 
 		It("", func() {
-			Expect(rest).Should(BeEquivalentTo([]models.Issue{{Id: 5},{Id: 6}}))
+			Expect(rest).Should(BeEquivalentTo([]models.Issue{{Id: 5}, {Id: 6}}))
 		})
 	})
 })
