@@ -1,0 +1,336 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "api/ocp-issue-api/ocp-issue-api.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v1/issues": {
+      "get": {
+        "summary": "Returns list of issues",
+        "operationId": "OcpIssueApi_ListIssuesV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiListIssuesV1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "OcpIssueApi"
+        ]
+      },
+      "post": {
+        "summary": "Create new issue",
+        "operationId": "OcpIssueApi_CreateIssueV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiCreateIssueV1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiCreateIssueV1Request"
+            }
+          }
+        ],
+        "tags": [
+          "OcpIssueApi"
+        ]
+      }
+    },
+    "/api/v1/issues/{issue_id}": {
+      "get": {
+        "summary": "Get the issue",
+        "operationId": "OcpIssueApi_DescribeIssueV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiDescribeIssueV1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "issue_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "OcpIssueApi"
+        ]
+      },
+      "delete": {
+        "summary": "Remove the issue",
+        "operationId": "OcpIssueApi_RemoveIssueV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiRemoveIssueV1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "issue_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "OcpIssueApi"
+        ]
+      },
+      "put": {
+        "summary": "Update the issue",
+        "operationId": "OcpIssueApi_UpdateIssueV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiUpdateIssueV1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "issue_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiUpdateIssueV1Request"
+            }
+          }
+        ],
+        "tags": [
+          "OcpIssueApi"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "apiCreateIssueV1Request": {
+      "type": "object",
+      "properties": {
+        "classroom_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "task_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "deadline": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "apiCreateIssueV1Response": {
+      "type": "object",
+      "properties": {
+        "issue_id": {
+          "type": "string",
+          "format": "uint64"
+        }
+      }
+    },
+    "apiDescribeIssueV1Response": {
+      "type": "object",
+      "properties": {
+        "issue": {
+          "$ref": "#/definitions/apiIssue"
+        }
+      }
+    },
+    "apiIssue": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "classroom_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "task_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "deadline": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "title": "Issue"
+    },
+    "apiListIssuesV1Response": {
+      "type": "object",
+      "properties": {
+        "issues": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiIssue"
+          }
+        }
+      }
+    },
+    "apiRemoveIssueV1Response": {
+      "type": "object",
+      "properties": {
+        "found": {
+          "type": "boolean"
+        }
+      }
+    },
+    "apiUpdateIssueV1Request": {
+      "type": "object",
+      "properties": {
+        "issue_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "classroom_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "task_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "deadline": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "apiUpdateIssueV1Response": {
+      "type": "object",
+      "properties": {
+        "found": {
+          "type": "boolean"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}
