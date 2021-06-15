@@ -1,6 +1,7 @@
 package saver
 
 import (
+	"context"
 	"github.com/ozoncp/ocp-issue-api/internal/flusher"
 	"github.com/ozoncp/ocp-issue-api/internal/models"
 	"sync"
@@ -15,10 +16,10 @@ const (
 )
 
 type Saver interface {
-	Init()
+	Init(ctx context.Context)
 	SetOverflowPolicy(policy OverflowPolicy)
 	Save(issue models.Issue) error
-	Close()
+	Close(ctx context.Context)
 }
 
 type saver struct {
@@ -32,7 +33,7 @@ type saver struct {
 	doneCh         chan struct{}
 }
 
-func (s *saver) Init() {
+func (s *saver) Init(ctx context.Context) {
 	go func() {
 		ticker := time.NewTicker(s.timeout)
 		defer ticker.Stop()
@@ -43,7 +44,7 @@ func (s *saver) Init() {
 				s.appendIssue(issue)
 
 			case <-ticker.C:
-				s.flushBuffer()
+				s.flushBuffer(ctx)
 
 			case <-s.doneCh:
 				return
@@ -64,12 +65,12 @@ func (s *saver) Save(issue models.Issue) error {
 	return nil
 }
 
-func (s *saver) Close() {
+func (s *saver) Close(ctx context.Context) {
 	s.doneCh <- struct{}{}
 	close(s.doneCh)
 	close(s.issueCh)
 
-	s.flushBuffer()
+	s.flushBuffer(ctx)
 }
 
 func New(flusher flusher.Flusher, timeout time.Duration, capacity uint) Saver {
@@ -102,11 +103,11 @@ func (s *saver) appendIssue(issue models.Issue) {
 	s.buffer = append(s.buffer, issue)
 }
 
-func (s *saver) flushBuffer() {
+func (s *saver) flushBuffer(ctx context.Context) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
 	if len(s.buffer) > 0 {
-		s.buffer = s.flusher.Flush(s.buffer)
+		s.buffer = s.flusher.Flush(ctx, s.buffer)
 	}
 }

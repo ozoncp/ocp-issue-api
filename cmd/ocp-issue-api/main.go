@@ -2,16 +2,19 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"flag"
-	"fmt"
-	"net"
-	"net/http"
-
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	_ "github.com/jackc/pgx/stdlib"
 	"github.com/ozoncp/ocp-issue-api/internal/api"
+	"github.com/ozoncp/ocp-issue-api/internal/repo"
 	desc "github.com/ozoncp/ocp-issue-api/pkg/ocp-issue-api"
+	"github.com/pressly/goose"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
+	"net"
+	"net/http"
+	"os"
 )
 
 const (
@@ -20,8 +23,9 @@ const (
 )
 
 var (
-	grpcEndpoint = flag.String("grpc-server-endpoint", "0.0.0.0"+grpcPort, "gRPC server endpoint")
-	httpEndpoint = flag.String("http-server-endpoint", "0.0.0.0"+httpPort, "HTTP server endpoint")
+	grpcEndpoint  = flag.String("grpc-server-endpoint", "0.0.0.0"+grpcPort, "gRPC server endpoint")
+	httpEndpoint  = flag.String("http-server-endpoint", "0.0.0.0"+httpPort, "HTTP server endpoint")
+	migrationsDir = flag.String("migrations-dir", "migrations", "directory with migration files")
 )
 
 func runHttp() error {
@@ -41,11 +45,12 @@ func runHttp() error {
 	mux.Handle("/", gwmux)
 	mux.Handle("/swagger/", http.StripPrefix("/swagger/", http.FileServer(http.Dir("./swagger"))))
 
-	fmt.Printf("HTTP server listening on %s\n", *httpEndpoint)
+	log.Info().Msgf("HTTP server listening on %s", *httpEndpoint)
+
 	return http.ListenAndServe(*httpEndpoint, mux)
 }
 
-func runGrpc() error {
+func runGrpc(repo repo.Repo) error {
 	listen, err := net.Listen("tcp", grpcPort)
 
 	if err != nil {
@@ -53,9 +58,9 @@ func runGrpc() error {
 	}
 
 	server := grpc.NewServer()
-	desc.RegisterOcpIssueApiServer(server, api.New())
+	desc.RegisterOcpIssueApiServer(server, api.New(repo))
 
-	fmt.Printf("gRPC server listening on %s\n", *grpcEndpoint)
+	log.Info().Msgf("gRPC server listening on %s", *grpcEndpoint)
 
 	if err = server.Serve(listen); err != nil {
 		return err
@@ -67,16 +72,32 @@ func runGrpc() error {
 func main() {
 	flag.Parse()
 
-	go func() {
-		err := runGrpc()
+	db, err := sql.Open("pgx", os.Getenv("OCP_ISSUE_API_DATA_SOURCE"))
 
-		if err != nil {
-			log.Fatal().Msg(err.Error())
+	if err != nil {
+		log.Fatal().Msgf("failed to load driver: %v", err)
+		return
+	}
+
+	defer func() {
+		if err = db.Close(); err != nil {
+			log.Fatal().Msgf("failed to close db connection: %v", err)
+		}
+	}()
+
+	if err = goose.Run("up", db, *migrationsDir); err != nil {
+		log.Fatal().Msgf("failed to apply migrations: %v", err)
+		return
+	}
+
+	go func() {
+		if err = runGrpc(repo.New(db)); err != nil {
+			log.Fatal().Msgf("failed to run gRPC server: %v", err)
 			return
 		}
 	}()
 
-	if err := runHttp(); err != nil {
-		log.Fatal().Msg(err.Error())
+	if err = runHttp(); err != nil {
+		log.Fatal().Msgf("failed to run HTTP server: %v", err)
 	}
 }

@@ -1,13 +1,14 @@
 package flusher
 
 import (
+	"context"
 	"github.com/ozoncp/ocp-issue-api/internal/models"
 	"github.com/ozoncp/ocp-issue-api/internal/repo"
 	"github.com/ozoncp/ocp-issue-api/internal/utils"
 )
 
 type Flusher interface {
-	Flush(issues []models.Issue) []models.Issue
+	Flush(ctx context.Context, issues []models.Issue) []models.Issue
 }
 
 type flusher struct {
@@ -15,10 +16,10 @@ type flusher struct {
 	chuckSize int
 }
 
-func (f *flusher) Flush(issues []models.Issue) []models.Issue {
+func (f *flusher) Flush(ctx context.Context, issues []models.Issue) []models.Issue {
 	for index, chunk := range utils.SplitIssuesToChunks(issues, f.chuckSize) {
 
-		if err := f.repo.AddIssues(chunk); err != nil {
+		if err := f.repo.AddIssues(ctx, chunk); err != nil {
 			return issues[index*f.chuckSize:]
 		}
 	}
