@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/ozoncp/ocp-issue-api/internal/flusher"
+	"github.com/ozoncp/ocp-issue-api/internal/metrics"
 	"github.com/ozoncp/ocp-issue-api/internal/repo"
 	desc "github.com/ozoncp/ocp-issue-api/pkg/ocp-issue-api"
 	"github.com/rs/zerolog/log"
@@ -60,6 +61,8 @@ func (a *api) CreateIssueV1(ctx context.Context, req *desc.CreateIssueV1Request)
 		return nil, status.Error(codes.Unknown, err.Error())
 	}
 
+	metrics.IncCreatedIssues()
+
 	return &desc.CreateIssueV1Response{IssueId: issueId}, nil
 }
 
@@ -112,6 +115,8 @@ func (a *api) UpdateIssueV1(ctx context.Context, req *desc.UpdateIssueV1Request)
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
+	metrics.IncUpdatedIssues()
+
 	return &desc.UpdateIssueV1Response{Found: true}, nil
 }
 
@@ -136,6 +141,8 @@ func (a *api) RemoveIssueV1(ctx context.Context, req *desc.RemoveIssueV1Request)
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
+	metrics.IncRemovedIssues()
+
 	return &desc.RemoveIssueV1Response{Found: true}, nil
 }
 
@@ -158,7 +165,10 @@ func (a *api) MultiCreateIssueV1(ctx context.Context, req *desc.MultiCreateIssue
 		return nil, status.Error(codes.Unknown, errorMessage)
 	}
 
-	return &desc.MultiCreateIssueV1Response{Created: uint64(len(req.Issues) - len(rest))}, nil
+	created := uint64(len(req.Issues) - len(rest))
+	metrics.AddCreatedIssues(created)
+
+	return &desc.MultiCreateIssueV1Response{Created: created}, nil
 }
 
 func New(repo repo.Repo, flusher flusher.Flusher) desc.OcpIssueApiServer {
