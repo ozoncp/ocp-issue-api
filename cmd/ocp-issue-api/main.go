@@ -7,6 +7,8 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/ozoncp/ocp-issue-api/internal/api"
+	"github.com/ozoncp/ocp-issue-api/internal/events"
+	"github.com/ozoncp/ocp-issue-api/internal/flusher"
 	"github.com/ozoncp/ocp-issue-api/internal/repo"
 	desc "github.com/ozoncp/ocp-issue-api/pkg/ocp-issue-api"
 	"github.com/pressly/goose"
@@ -20,6 +22,9 @@ import (
 const (
 	grpcPort = ":7002"
 	httpPort = ":7000"
+
+	issuesChunkSize = 50
+	eventsChannelBufferSize = 50
 )
 
 var (
@@ -58,7 +63,7 @@ func runGrpc(repo repo.Repo) error {
 	}
 
 	server := grpc.NewServer()
-	desc.RegisterOcpIssueApiServer(server, api.New(repo))
+	desc.RegisterOcpIssueApiServer(server, api.New(repo, flusher.New(repo, issuesChunkSize)))
 
 	log.Info().Msgf("gRPC server listening on %s", *grpcEndpoint)
 
@@ -67,6 +72,35 @@ func runGrpc(repo repo.Repo) error {
 	}
 
 	return nil
+}
+
+func runEventProducer(eventCh chan events.IssueEvent) error {
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	brokers := os.Getenv("OCP_ISSUE_API_KAFKA_BROKERS")
+	topic := os.Getenv("OCP_ISSUE_API_KAFKA_EVENTS_TOPIC")
+
+	producer, err := events.NewProducer(brokers, topic)
+
+	if err != nil {
+		return err
+	}
+
+	for {
+		select {
+		case event := <- eventCh:
+			err = producer.Produce(event)
+
+			if err != nil {
+				return err
+			}
+
+		case <- ctx.Done():
+			return nil
+		}
+	}
 }
 
 func main() {
@@ -90,8 +124,17 @@ func main() {
 		return
 	}
 
+	eventCh := make(chan events.IssueEvent, eventsChannelBufferSize)
+
 	go func() {
-		if err = runGrpc(repo.New(db)); err != nil {
+		if err = runEventProducer(eventCh); err != nil {
+			log.Fatal().Msgf("failed to produce events: %v", err)
+			return
+		}
+	}()
+
+	go func() {
+		if err = runGrpc(repo.New(db, eventCh)); err != nil {
 			log.Fatal().Msgf("failed to run gRPC server: %v", err)
 			return
 		}

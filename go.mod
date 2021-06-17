@@ -3,9 +3,10 @@ module github.com/ozoncp/ocp-issue-api
 go 1.16
 
 require (
-	github.com/DATA-DOG/go-sqlmock v1.5.0 // indirect
+	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/Masterminds/squirrel v1.5.0
 	github.com/cockroachdb/apd v1.1.0 // indirect
+	github.com/confluentinc/confluent-kafka-go v1.7.0
 	github.com/envoyproxy/protoc-gen-validate v0.1.0
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/golang/mock v1.5.0
@@ -16,7 +17,7 @@ require (
 	github.com/lib/pq v1.10.2 // indirect
 	github.com/onsi/ginkgo v1.16.2
 	github.com/onsi/gomega v1.13.0
-	github.com/pressly/goose v2.7.0+incompatible // indirect
+	github.com/pressly/goose v2.7.0+incompatible
 	github.com/rs/zerolog v1.22.0
 	github.com/shopspring/decimal v1.2.0 // indirect
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect

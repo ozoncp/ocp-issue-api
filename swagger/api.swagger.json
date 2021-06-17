@@ -81,6 +81,39 @@
         ]
       }
     },
+    "/api/v1/issues/multi": {
+      "post": {
+        "summary": "Create some issues",
+        "operationId": "OcpIssueApi_MultiCreateIssueV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiMultiCreateIssueV1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiMultiCreateIssueV1Request"
+            }
+          }
+        ],
+        "tags": [
+          "OcpIssueApi"
+        ]
+      }
+    },
     "/api/v1/issues/{issue_id}": {
       "get": {
         "summary": "Get the issue",
@@ -255,6 +288,26 @@
           "items": {
             "$ref": "#/definitions/apiIssue"
           }
+        }
+      }
+    },
+    "apiMultiCreateIssueV1Request": {
+      "type": "object",
+      "properties": {
+        "issues": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiCreateIssueV1Request"
+          }
+        }
+      }
+    },
+    "apiMultiCreateIssueV1Response": {
+      "type": "object",
+      "properties": {
+        "created": {
+          "type": "string",
+          "format": "uint64"
         }
       }
     },

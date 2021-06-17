@@ -45,9 +45,9 @@ var _ = Describe("Flusher", func() {
 	Context("repo save all issues", func() {
 		BeforeEach(func() {
 			gomock.InOrder(
-				mockRepo.EXPECT().AddIssues(ctx, []models.Issue{{Id: 1}, {Id: 2}}).Return(nil),
-				mockRepo.EXPECT().AddIssues(ctx, []models.Issue{{Id: 3}, {Id: 4}}).Return(nil),
-				mockRepo.EXPECT().AddIssues(ctx, []models.Issue{{Id: 5}, {Id: 6}}).Return(nil),
+				mockRepo.EXPECT().AddIssues(ctx, []models.Issue{{Id: 1}, {Id: 2}}).Return([]uint64{1, 2}, nil),
+				mockRepo.EXPECT().AddIssues(ctx, []models.Issue{{Id: 3}, {Id: 4}}).Return([]uint64{3, 4}, nil),
+				mockRepo.EXPECT().AddIssues(ctx, []models.Issue{{Id: 5}, {Id: 6}}).Return([]uint64{5, 6}, nil),
 			)
 		})
 
@@ -58,7 +58,8 @@ var _ = Describe("Flusher", func() {
 
 	Context("repo don't save issues", func() {
 		BeforeEach(func() {
-			mockRepo.EXPECT().AddIssues(ctx, []models.Issue{{Id: 1}, {Id: 2}}).Return(errors.New("can't save issues"))
+			mockRepo.EXPECT().AddIssues(ctx, []models.Issue{{Id: 1}, {Id: 2}}).
+				Return(nil, errors.New("failed to save issues"))
 		})
 
 		It("", func() {
@@ -69,9 +70,10 @@ var _ = Describe("Flusher", func() {
 	Context("repo save not all issues", func() {
 		BeforeEach(func() {
 			gomock.InOrder(
-				mockRepo.EXPECT().AddIssues(ctx, []models.Issue{{Id: 1}, {Id: 2}}).Return(nil),
-				mockRepo.EXPECT().AddIssues(ctx, []models.Issue{{Id: 3}, {Id: 4}}).Return(nil),
-				mockRepo.EXPECT().AddIssues(ctx, []models.Issue{{Id: 5}, {Id: 6}}).Return(errors.New("can't save issues")),
+				mockRepo.EXPECT().AddIssues(ctx, []models.Issue{{Id: 1}, {Id: 2}}).Return([]uint64{1, 2}, nil),
+				mockRepo.EXPECT().AddIssues(ctx, []models.Issue{{Id: 3}, {Id: 4}}).Return([]uint64{3, 4}, nil),
+				mockRepo.EXPECT().AddIssues(ctx, []models.Issue{{Id: 5}, {Id: 6}}).
+					Return([]uint64{6, 6}, errors.New("failed to save issues")),
 			)
 		})
 

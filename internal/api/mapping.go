@@ -35,6 +35,16 @@ func mapFromCreateIssueRequest(req *desc.CreateIssueV1Request) models.Issue {
 	}
 }
 
+func mapFromMultiCreateIssueRequest(req *desc.MultiCreateIssueV1Request) []models.Issue {
+	mapped := make([]models.Issue, 0, len(req.Issues))
+
+	for _, issue := range req.Issues {
+		mapped = append(mapped, mapFromCreateIssueRequest(issue))
+	}
+
+	return mapped
+}
+
 func mapFromUpdateIssueRequest(req *desc.UpdateIssueV1Request) models.Issue {
 	return models.Issue{
 		Id:          req.IssueId,

@@ -2,6 +2,8 @@ package api
 
 import (
 	"context"
+	"fmt"
+	"github.com/ozoncp/ocp-issue-api/internal/flusher"
 	"github.com/ozoncp/ocp-issue-api/internal/repo"
 	desc "github.com/ozoncp/ocp-issue-api/pkg/ocp-issue-api"
 	"github.com/rs/zerolog/log"
@@ -11,7 +13,8 @@ import (
 
 type api struct {
 	desc.UnimplementedOcpIssueApiServer
-	repo repo.Repo
+	repo    repo.Repo
+	flusher flusher.Flusher
 }
 
 func (a *api) ListIssuesV1(ctx context.Context, req *desc.ListIssuesV1Request) (*desc.ListIssuesV1Response, error) {
@@ -136,6 +139,31 @@ func (a *api) RemoveIssueV1(ctx context.Context, req *desc.RemoveIssueV1Request)
 	return &desc.RemoveIssueV1Response{Found: true}, nil
 }
 
-func New(repo repo.Repo) desc.OcpIssueApiServer {
-	return &api{repo: repo}
+func (a *api) MultiCreateIssueV1(ctx context.Context, req *desc.MultiCreateIssueV1Request) (*desc.MultiCreateIssueV1Response, error) {
+	log.Debug().
+		Str("request", "MultiCreateIssue").
+		Uint("version", 1).
+		Int("count", len(req.Issues)).
+		Msg("invoke handle")
+
+	if err := req.Validate(); err != nil {
+		return nil, desc.MultiCreateIssueV1RequestValidationError{}
+	}
+
+	rest := a.flusher.Flush(ctx, mapFromMultiCreateIssueRequest(req))
+
+	if rest != nil {
+		errorMessage := fmt.Sprintf("failed to create %d issues", len(rest))
+		log.Error().Msg(errorMessage)
+		return nil, status.Error(codes.Unknown, errorMessage)
+	}
+
+	return &desc.MultiCreateIssueV1Response{Created: uint64(len(req.Issues) - len(rest))}, nil
+}
+
+func New(repo repo.Repo, flusher flusher.Flusher) desc.OcpIssueApiServer {
+	return &api{
+		repo:    repo,
+		flusher: flusher,
+	}
 }

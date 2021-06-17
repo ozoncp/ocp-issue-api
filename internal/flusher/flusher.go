@@ -19,7 +19,7 @@ type flusher struct {
 func (f *flusher) Flush(ctx context.Context, issues []models.Issue) []models.Issue {
 	for index, chunk := range utils.SplitIssuesToChunks(issues, f.chuckSize) {
 
-		if err := f.repo.AddIssues(ctx, chunk); err != nil {
+		if _, err := f.repo.AddIssues(ctx, chunk); err != nil {
 			return issues[index*f.chuckSize:]
 		}
 	}

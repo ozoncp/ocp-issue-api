@@ -47,6 +47,14 @@ service OcpIssueApi {
       delete: "/api/v1/issues/{issue_id}"
     };
   }
+
+  // Create some issues
+  rpc MultiCreateIssueV1(MultiCreateIssueV1Request) returns (MultiCreateIssueV1Response) {
+    option (google.api.http) = {
+      post: "/api/v1/issues/multi",
+      body: "*",
+    };
+  }
 }
 
 // Issue
@@ -104,4 +112,12 @@ message RemoveIssueV1Request {
 
 message RemoveIssueV1Response {
   bool found = 1;
+}
+
+message MultiCreateIssueV1Request {
+  repeated CreateIssueV1Request issues = 1;
+}
+
+message MultiCreateIssueV1Response {
+  uint64 created = 1;
 }
