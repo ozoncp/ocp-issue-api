@@ -62,6 +62,7 @@ install-go-deps: .install-go-deps
 		go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
 		go get -u github.com/golang/protobuf/proto
 		go get -u github.com/golang/protobuf/protoc-gen-go
+		go get -u github.com/pressly/goose/cmd/goose
 		go get -u google.golang.org/grpc
 		go get -u google.golang.org/grpc/cmd/protoc-gen-go-grpc
 		go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger

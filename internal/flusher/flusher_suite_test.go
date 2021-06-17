@@ -1,4 +1,4 @@
-package flusher_test
+package flusher
 
 import (
 	"testing"
