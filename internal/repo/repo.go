@@ -6,6 +6,7 @@ import (
 	"errors"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/ozoncp/ocp-issue-api/internal/models"
+	"github.com/rs/zerolog/log"
 )
 
 type Repo interface {
@@ -145,6 +146,8 @@ func (r *repo) ListIssues(ctx context.Context, limit uint64, offset uint64) ([]m
 
 		if err == nil {
 			issues = append(issues, issue)
+		} else {
+			log.Error().Msgf("ailed to scan issue: %v", err)
 		}
 	}
 

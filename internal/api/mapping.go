@@ -6,7 +6,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func MapFromIssueModel(issue models.Issue) *desc.Issue {
+func mapFromIssueModel(issue models.Issue) *desc.Issue {
 	return &desc.Issue{
 		Id:          issue.Id,
 		ClassroomId: issue.ClassroomId,
@@ -16,17 +16,17 @@ func MapFromIssueModel(issue models.Issue) *desc.Issue {
 	}
 }
 
-func MapFromIssueModels(issues []models.Issue) []*desc.Issue {
+func mapFromIssueModels(issues []models.Issue) []*desc.Issue {
 	mapped := make([]*desc.Issue, 0, len(issues))
 
 	for _, issue := range issues {
-		mapped = append(mapped, MapFromIssueModel(issue))
+		mapped = append(mapped, mapFromIssueModel(issue))
 	}
 
 	return mapped
 }
 
-func MapFromCreateIssueRequest(req *desc.CreateIssueV1Request) models.Issue {
+func mapFromCreateIssueRequest(req *desc.CreateIssueV1Request) models.Issue {
 	return models.Issue{
 		ClassroomId: req.ClassroomId,
 		TaskId:      req.TaskId,
@@ -35,7 +35,7 @@ func MapFromCreateIssueRequest(req *desc.CreateIssueV1Request) models.Issue {
 	}
 }
 
-func MapFromUpdateIssueRequest(req *desc.UpdateIssueV1Request) models.Issue {
+func mapFromUpdateIssueRequest(req *desc.UpdateIssueV1Request) models.Issue {
 	return models.Issue{
 		Id:          req.IssueId,
 		ClassroomId: req.ClassroomId,

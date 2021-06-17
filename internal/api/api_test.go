@@ -1,4 +1,4 @@
-package api_test
+package api
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/ozoncp/ocp-issue-api/internal/api"
 	"github.com/ozoncp/ocp-issue-api/internal/models"
 	"github.com/ozoncp/ocp-issue-api/internal/repo"
 	desc "github.com/ozoncp/ocp-issue-api/pkg/ocp-issue-api"
@@ -31,7 +30,7 @@ var _ = Describe("Api", func() {
 	BeforeEach(func() {
 		ctx = context.Background()
 		db, mock, _ = sqlmock.New()
-		a = api.New(repo.New(db))
+		a = New(repo.New(db))
 	})
 
 	AfterEach(func() {
@@ -91,7 +90,7 @@ var _ = Describe("Api", func() {
 			It("list first page of issues", func() {
 				Expect(err).Should(BeNil())
 				Expect(len(res.Issues)).Should(BeEquivalentTo(limit))
-				Expect(res.Issues).Should(BeEquivalentTo(api.MapFromIssueModels(issues[0:3])))
+				Expect(res.Issues).Should(BeEquivalentTo(mapFromIssueModels(issues[0:3])))
 			})
 		})
 
@@ -111,7 +110,7 @@ var _ = Describe("Api", func() {
 			It("list first page of issues", func() {
 				Expect(err).Should(BeNil())
 				Expect(len(res.Issues)).Should(BeEquivalentTo(2))
-				Expect(res.Issues).Should(BeEquivalentTo(api.MapFromIssueModels(issues[3:])))
+				Expect(res.Issues).Should(BeEquivalentTo(mapFromIssueModels(issues[3:])))
 			})
 		})
 
@@ -241,7 +240,7 @@ var _ = Describe("Api", func() {
 
 			It("", func() {
 				Expect(err).Should(BeNil())
-				Expect(res.Issue).Should(BeEquivalentTo(api.MapFromIssueModel(issue)))
+				Expect(res.Issue).Should(BeEquivalentTo(mapFromIssueModel(issue)))
 			})
 		})
 

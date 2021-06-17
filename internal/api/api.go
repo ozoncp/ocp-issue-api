@@ -33,7 +33,7 @@ func (a *api) ListIssuesV1(ctx context.Context, req *desc.ListIssuesV1Request) (
 		return nil, status.Error(codes.Unknown, err.Error())
 	}
 
-	return &desc.ListIssuesV1Response{Issues: MapFromIssueModels(issues)}, nil
+	return &desc.ListIssuesV1Response{Issues: mapFromIssueModels(issues)}, nil
 }
 
 func (a *api) CreateIssueV1(ctx context.Context, req *desc.CreateIssueV1Request) (*desc.CreateIssueV1Response, error) {
@@ -50,7 +50,7 @@ func (a *api) CreateIssueV1(ctx context.Context, req *desc.CreateIssueV1Request)
 		return nil, desc.CreateIssueV1RequestValidationError{}
 	}
 
-	issueId, err := a.repo.AddIssue(ctx, MapFromCreateIssueRequest(req))
+	issueId, err := a.repo.AddIssue(ctx, mapFromCreateIssueRequest(req))
 
 	if err != nil {
 		log.Error().Msgf("failed to create issue: %v", err)
@@ -81,7 +81,7 @@ func (a *api) DescribeIssueV1(ctx context.Context, req *desc.DescribeIssueV1Requ
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
-	return &desc.DescribeIssueV1Response{Issue: MapFromIssueModel(*issue)}, nil
+	return &desc.DescribeIssueV1Response{Issue: mapFromIssueModel(*issue)}, nil
 }
 
 func (a *api) UpdateIssueV1(ctx context.Context, req *desc.UpdateIssueV1Request) (*desc.UpdateIssueV1Response, error) {
@@ -99,7 +99,7 @@ func (a *api) UpdateIssueV1(ctx context.Context, req *desc.UpdateIssueV1Request)
 		return nil, desc.UpdateIssueV1RequestValidationError{}
 	}
 
-	err := a.repo.UpdateIssue(ctx, MapFromUpdateIssueRequest(req))
+	err := a.repo.UpdateIssue(ctx, mapFromUpdateIssueRequest(req))
 
 	if err != nil {
 		log.Error().

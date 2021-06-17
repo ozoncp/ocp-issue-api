@@ -1,4 +1,4 @@
-package flusher_test
+package flusher
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/ozoncp/ocp-issue-api/internal/flusher"
 	"github.com/ozoncp/ocp-issue-api/internal/mocks"
 	"github.com/ozoncp/ocp-issue-api/internal/models"
 )
@@ -17,7 +16,7 @@ var _ = Describe("Flusher", func() {
 
 		ctrl     *gomock.Controller
 		mockRepo *mocks.MockRepo
-		f        flusher.Flusher
+		f        Flusher
 
 		issues []models.Issue
 		rest   []models.Issue
@@ -35,7 +34,7 @@ var _ = Describe("Flusher", func() {
 	})
 
 	JustBeforeEach(func() {
-		f = flusher.New(mockRepo, chunkSize)
+		f = New(mockRepo, chunkSize)
 		rest = f.Flush(ctx, issues)
 	})
 

@@ -1,10 +1,9 @@
-package utils_test
+package utils
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/ozoncp/ocp-issue-api/internal/models"
-	. "github.com/ozoncp/ocp-issue-api/internal/utils"
 )
 
 var _ = Describe("Utils", func() {

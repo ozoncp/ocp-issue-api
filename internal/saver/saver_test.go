@@ -1,4 +1,4 @@
-package saver_test
+package saver
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/ozoncp/ocp-issue-api/internal/mocks"
 	"github.com/ozoncp/ocp-issue-api/internal/models"
-	"github.com/ozoncp/ocp-issue-api/internal/saver"
 	"time"
 )
 
@@ -20,7 +19,7 @@ var _ = Describe("Saver", func() {
 
 		timeout  time.Duration
 		capacity uint
-		s        saver.Saver
+		s        Saver
 		issues   []models.Issue
 	)
 
@@ -41,7 +40,7 @@ var _ = Describe("Saver", func() {
 	Context("with big enough capacity", func() {
 		BeforeEach(func() {
 			capacity = 10
-			s = saver.New(mockFlusher, timeout, capacity)
+			s = New(mockFlusher, timeout, capacity)
 			s.Init(ctx)
 		})
 
@@ -82,8 +81,8 @@ var _ = Describe("Saver", func() {
 	Context("ClearBuffer overflow policy", func() {
 		BeforeEach(func() {
 			capacity = 2
-			s = saver.New(mockFlusher, timeout, capacity)
-			s.SetOverflowPolicy(saver.ClearBuffer)
+			s = New(mockFlusher, timeout, capacity)
+			s.SetOverflowPolicy(ClearBuffer)
 			s.Init(ctx)
 
 			mockFlusher.EXPECT().Flush(ctx, []models.Issue{{Id: 3}}).Return(nil).Times(1)
@@ -111,8 +110,8 @@ var _ = Describe("Saver", func() {
 	Context("RemoveOldest overflow policy", func() {
 		BeforeEach(func() {
 			capacity = 2
-			s = saver.New(mockFlusher, timeout, capacity)
-			s.SetOverflowPolicy(saver.RemoveOldest)
+			s = New(mockFlusher, timeout, capacity)
+			s.SetOverflowPolicy(RemoveOldest)
 			s.Init(ctx)
 
 			mockFlusher.EXPECT().Flush(ctx, []models.Issue{{Id: 2}, {Id: 3}}).Return(nil).Times(1)
