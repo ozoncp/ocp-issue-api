@@ -11,6 +11,7 @@ import (
 	"github.com/ozoncp/ocp-issue-api/internal/flusher"
 	"github.com/ozoncp/ocp-issue-api/internal/metrics"
 	"github.com/ozoncp/ocp-issue-api/internal/repo"
+	"github.com/ozoncp/ocp-issue-api/internal/tracing"
 	desc "github.com/ozoncp/ocp-issue-api/pkg/ocp-issue-api"
 	"github.com/pressly/goose"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -22,19 +23,19 @@ import (
 )
 
 const (
-	grpcPort = ":7002"
-	httpPort = ":7000"
+	grpcPort    = ":7002"
+	httpPort    = ":7000"
 	metricsPort = ":9100"
 
-	issuesChunkSize = 50
+	issuesChunkSize         = 2
 	eventsChannelBufferSize = 50
 )
 
 var (
-	grpcEndpoint  = flag.String("grpc-server-endpoint", "0.0.0.0"+grpcPort, "gRPC server endpoint")
-	httpEndpoint  = flag.String("http-server-endpoint", "0.0.0.0"+httpPort, "HTTP server endpoint")
-	metricsEndpoint  = flag.String("metrics-server-endpoint", "0.0.0.0"+metricsPort, "Metrics server endpoint")
-	migrationsDir = flag.String("migrations-dir", "migrations", "directory with migration files")
+	grpcEndpoint    = flag.String("grpc-server-endpoint", "0.0.0.0"+grpcPort, "gRPC server endpoint")
+	httpEndpoint    = flag.String("http-server-endpoint", "0.0.0.0"+httpPort, "HTTP server endpoint")
+	metricsEndpoint = flag.String("metrics-server-endpoint", "0.0.0.0"+metricsPort, "Metrics server endpoint")
+	migrationsDir   = flag.String("migrations-dir", "migrations", "directory with migration files")
 )
 
 func runHttp() error {
@@ -94,14 +95,14 @@ func runEventProducer(eventCh chan events.IssueEvent) error {
 
 	for {
 		select {
-		case event := <- eventCh:
+		case event := <-eventCh:
 			err = producer.Produce(event)
 
 			if err != nil {
 				return err
 			}
 
-		case <- ctx.Done():
+		case <-ctx.Done():
 			return nil
 		}
 	}
@@ -114,6 +115,10 @@ func runMetrics() error {
 }
 
 func main() {
+	if err := tracing.InitTracing(); err != nil {
+		log.Error().Msgf("failed to init tracing: %v", err)
+	}
+
 	flag.Parse()
 
 	db, err := sql.Open("pgx", os.Getenv("OCP_ISSUE_API_DATA_SOURCE"))

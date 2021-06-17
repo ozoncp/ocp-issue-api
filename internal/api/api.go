@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"github.com/opentracing/opentracing-go"
 	"github.com/ozoncp/ocp-issue-api/internal/flusher"
 	"github.com/ozoncp/ocp-issue-api/internal/metrics"
 	"github.com/ozoncp/ocp-issue-api/internal/repo"
@@ -147,6 +148,9 @@ func (a *api) RemoveIssueV1(ctx context.Context, req *desc.RemoveIssueV1Request)
 }
 
 func (a *api) MultiCreateIssueV1(ctx context.Context, req *desc.MultiCreateIssueV1Request) (*desc.MultiCreateIssueV1Response, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "MultiCreateIssue")
+	defer span.Finish()
+
 	log.Debug().
 		Str("request", "MultiCreateIssue").
 		Uint("version", 1).
@@ -167,6 +171,7 @@ func (a *api) MultiCreateIssueV1(ctx context.Context, req *desc.MultiCreateIssue
 
 	created := uint64(len(req.Issues) - len(rest))
 	metrics.AddCreatedIssues(created)
+	span.SetTag("issues-count", created)
 
 	return &desc.MultiCreateIssueV1Response{Created: created}, nil
 }

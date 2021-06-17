@@ -403,11 +403,11 @@ var _ = Describe("Api", func() {
 		BeforeEach(func() {
 			req = &desc.MultiCreateIssueV1Request{
 				Issues: []*desc.CreateIssueV1Request{
-					{ ClassroomId: 1, TaskId: 1, UserId: 1, Deadline: timestamppb.New(time.Now()) },
-					{ ClassroomId: 2, TaskId: 2, UserId: 2, Deadline: timestamppb.New(time.Now()) },
-					{ ClassroomId: 3, TaskId: 3, UserId: 3, Deadline: timestamppb.New(time.Now()) },
-					{ ClassroomId: 4, TaskId: 4, UserId: 4, Deadline: timestamppb.New(time.Now()) },
-					{ ClassroomId: 5, TaskId: 5, UserId: 5, Deadline: timestamppb.New(time.Now()) },
+					{ClassroomId: 1, TaskId: 1, UserId: 1, Deadline: timestamppb.New(time.Now())},
+					{ClassroomId: 2, TaskId: 2, UserId: 2, Deadline: timestamppb.New(time.Now())},
+					{ClassroomId: 3, TaskId: 3, UserId: 3, Deadline: timestamppb.New(time.Now())},
+					{ClassroomId: 4, TaskId: 4, UserId: 4, Deadline: timestamppb.New(time.Now())},
+					{ClassroomId: 5, TaskId: 5, UserId: 5, Deadline: timestamppb.New(time.Now())},
 				},
 			}
 		})

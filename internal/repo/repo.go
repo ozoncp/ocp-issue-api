@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	sq "github.com/Masterminds/squirrel"
+	"github.com/opentracing/opentracing-go"
 	"github.com/ozoncp/ocp-issue-api/internal/events"
 	"github.com/ozoncp/ocp-issue-api/internal/models"
 	"github.com/rs/zerolog/log"
@@ -23,7 +24,7 @@ type Repo interface {
 const tableName = "issues"
 
 type repo struct {
-	db *sql.DB
+	db      *sql.DB
 	eventCh chan events.IssueEvent
 }
 
@@ -45,6 +46,9 @@ func (r *repo) AddIssue(ctx context.Context, issue models.Issue) (uint64, error)
 }
 
 func (r *repo) AddIssues(ctx context.Context, issues []models.Issue) ([]uint64, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "AddIssues")
+	defer span.Finish()
+
 	query := sq.Insert(tableName).
 		Columns("class_room_id", "task_id", "user_id", "deadline").
 		Suffix("RETURNING \"id\"").
@@ -72,6 +76,8 @@ func (r *repo) AddIssues(ctx context.Context, issues []models.Issue) ([]uint64, 
 			issueIds = append(issueIds, issueId)
 		}
 	}
+
+	span.SetTag("issues-count", len(issues))
 
 	return issueIds, err
 }
@@ -180,7 +186,7 @@ func (r *repo) ListIssues(ctx context.Context, limit uint64, offset uint64) ([]m
 
 func New(db *sql.DB, eventCh chan events.IssueEvent) Repo {
 	return &repo{
-		db: db,
+		db:      db,
 		eventCh: eventCh,
 	}
 }
@@ -190,7 +196,7 @@ func (r *repo) sendEvent(issueId uint64, eventType events.IssueEventType) {
 		r.eventCh <- events.IssueEvent{
 			Type: eventType,
 			Body: map[string]interface{}{
-				"issue_id": issueId,
+				"issue_id":  issueId,
 				"timestamp": time.Now().UTC().Unix(),
 			},
 		}
