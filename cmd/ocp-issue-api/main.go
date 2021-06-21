@@ -80,10 +80,6 @@ func runGrpc(repo repo.Repo) error {
 }
 
 func runEventProducer(eventCh chan events.IssueEvent) error {
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
 	brokers := os.Getenv("OCP_ISSUE_API_KAFKA_BROKERS")
 	topic := os.Getenv("OCP_ISSUE_API_KAFKA_EVENTS_TOPIC")
 
@@ -93,6 +89,8 @@ func runEventProducer(eventCh chan events.IssueEvent) error {
 		return err
 	}
 
+	defer producer.Close()
+
 	for {
 		select {
 		case event := <-eventCh:
@@ -101,9 +99,6 @@ func runEventProducer(eventCh chan events.IssueEvent) error {
 			if err != nil {
 				return err
 			}
-
-		case <-ctx.Done():
-			return nil
 		}
 	}
 }
