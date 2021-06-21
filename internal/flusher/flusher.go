@@ -22,10 +22,8 @@ func (f *flusher) Flush(ctx context.Context, issues []models.Issue) []models.Iss
 	for index, chunk := range utils.SplitIssuesToChunks(issues, f.chuckSize) {
 		issueIds, err := f.repo.AddIssues(ctx, chunk)
 
-		if issueIds != nil {
-			for _, issueId := range issueIds {
-				f.notifier.Notify(issueId, events.Created)
-			}
+		for _, issueId := range issueIds {
+			f.notifier.Notify(issueId, events.Created)
 		}
 
 		if err != nil {
