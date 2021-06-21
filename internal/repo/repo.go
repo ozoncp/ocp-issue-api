@@ -22,7 +22,7 @@ type Repo interface {
 const tableName = "issues"
 
 type repo struct {
-	db      *sql.DB
+	db *sql.DB
 }
 
 func (r *repo) AddIssue(ctx context.Context, issue models.Issue) (uint64, error) {

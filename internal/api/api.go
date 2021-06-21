@@ -16,8 +16,8 @@ import (
 
 type api struct {
 	desc.UnimplementedOcpIssueApiServer
-	repo    repo.Repo
-	flusher flusher.Flusher
+	repo     repo.Repo
+	flusher  flusher.Flusher
 	notifier events.EventNotifier
 }
 
@@ -192,8 +192,8 @@ func (a *api) MultiCreateIssueV1(ctx context.Context, req *desc.MultiCreateIssue
 
 func NewApi(repo repo.Repo, flusher flusher.Flusher, notifier events.EventNotifier) desc.OcpIssueApiServer {
 	return &api{
-		repo:    repo,
-		flusher: flusher,
+		repo:     repo,
+		flusher:  flusher,
 		notifier: notifier,
 	}
 }

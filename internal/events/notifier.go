@@ -15,7 +15,7 @@ func (n *notifier) Notify(issueId uint64, eventType IssueEventType) {
 	n.eventCh <- IssueEvent{
 		Type: eventType,
 		Body: IssueEventBody{
-			IssueId:  issueId,
+			IssueId:   issueId,
 			Timestamp: time.Now().UTC().Unix(),
 		},
 	}

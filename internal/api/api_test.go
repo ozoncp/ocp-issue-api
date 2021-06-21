@@ -26,7 +26,7 @@ var _ = Describe("Api", func() {
 		db   *sql.DB
 		mock sqlmock.Sqlmock
 
-		ctrl     *gomock.Controller
+		ctrl              *gomock.Controller
 		mockEventNotifier *mocks.MockEventNotifier
 
 		r repo.Repo

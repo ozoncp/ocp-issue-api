@@ -15,11 +15,11 @@ var _ = Describe("Flusher", func() {
 	var (
 		ctx context.Context
 
-		ctrl     *gomock.Controller
-		mockRepo *mocks.MockRepo
+		ctrl              *gomock.Controller
+		mockRepo          *mocks.MockRepo
 		mockEventNotifier *mocks.MockEventNotifier
 
-		f        Flusher
+		f Flusher
 
 		issues []models.Issue
 		rest   []models.Issue

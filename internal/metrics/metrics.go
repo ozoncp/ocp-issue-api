@@ -38,7 +38,7 @@ func RegisterMetrics() {
 
 type Status = uint8
 
-const(
+const (
 	Ok Status = iota
 	Error
 )
