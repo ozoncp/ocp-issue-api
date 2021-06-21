@@ -6,9 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/ozoncp/ocp-issue-api/internal/events"
 	"github.com/ozoncp/ocp-issue-api/internal/flusher"
+	"github.com/ozoncp/ocp-issue-api/internal/mocks"
 	"github.com/ozoncp/ocp-issue-api/internal/models"
 	"github.com/ozoncp/ocp-issue-api/internal/repo"
 	desc "github.com/ozoncp/ocp-issue-api/pkg/ocp-issue-api"
@@ -23,6 +26,9 @@ var _ = Describe("Api", func() {
 		db   *sql.DB
 		mock sqlmock.Sqlmock
 
+		ctrl     *gomock.Controller
+		mockEventNotifier *mocks.MockEventNotifier
+
 		r repo.Repo
 		a desc.OcpIssueApiServer
 
@@ -31,9 +37,14 @@ var _ = Describe("Api", func() {
 
 	BeforeEach(func() {
 		ctx = context.Background()
+
 		db, mock, _ = sqlmock.New()
-		r = repo.New(db, nil)
-		a = New(r, flusher.New(r, 3))
+
+		ctrl = gomock.NewController(GinkgoT())
+		mockEventNotifier = mocks.NewMockEventNotifier(ctrl)
+
+		r = repo.NewRepo(db)
+		a = NewApi(r, flusher.NewFlusher(r, mockEventNotifier, 3), mockEventNotifier)
 	})
 
 	AfterEach(func() {
@@ -171,6 +182,8 @@ var _ = Describe("Api", func() {
 				mock.ExpectQuery("INSERT INTO issues").
 					WithArgs(req.ClassroomId, req.TaskId, req.UserId, req.Deadline.AsTime()).
 					WillReturnRows(rows)
+
+				mockEventNotifier.EXPECT().Notify(issueId, events.Created)
 			})
 
 			It("", func() {
@@ -296,6 +309,8 @@ var _ = Describe("Api", func() {
 			BeforeEach(func() {
 				mock.ExpectExec("UPDATE issues").
 					WillReturnResult(sqlmock.NewResult(0, 1))
+
+				mockEventNotifier.EXPECT().Notify(req.IssueId, events.Updated)
 			})
 
 			It("", func() {
@@ -359,6 +374,8 @@ var _ = Describe("Api", func() {
 				mock.ExpectExec("DELETE FROM issues WHERE").
 					WithArgs(req.IssueId).
 					WillReturnResult(sqlmock.NewResult(0, 1))
+
+				mockEventNotifier.EXPECT().Notify(req.IssueId, events.Removed)
 			})
 
 			It("", func() {
@@ -423,6 +440,14 @@ var _ = Describe("Api", func() {
 
 				mock.ExpectQuery("INSERT INTO issues").
 					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(4).AddRow(5))
+
+				gomock.InOrder(
+					mockEventNotifier.EXPECT().Notify(uint64(1), events.Created),
+					mockEventNotifier.EXPECT().Notify(uint64(2), events.Created),
+					mockEventNotifier.EXPECT().Notify(uint64(3), events.Created),
+					mockEventNotifier.EXPECT().Notify(uint64(4), events.Created),
+					mockEventNotifier.EXPECT().Notify(uint64(5), events.Created),
+				)
 			})
 
 			It("", func() {

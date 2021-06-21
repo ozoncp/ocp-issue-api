@@ -6,6 +6,7 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/ozoncp/ocp-issue-api/internal/events"
 	"github.com/ozoncp/ocp-issue-api/internal/mocks"
 	"github.com/ozoncp/ocp-issue-api/internal/models"
 )
@@ -16,6 +17,8 @@ var _ = Describe("Flusher", func() {
 
 		ctrl     *gomock.Controller
 		mockRepo *mocks.MockRepo
+		mockEventNotifier *mocks.MockEventNotifier
+
 		f        Flusher
 
 		issues []models.Issue
@@ -28,13 +31,14 @@ var _ = Describe("Flusher", func() {
 		ctx = context.Background()
 		ctrl = gomock.NewController(GinkgoT())
 		mockRepo = mocks.NewMockRepo(ctrl)
+		mockEventNotifier = mocks.NewMockEventNotifier(ctrl)
 
 		chunkSize = 2
 		issues = []models.Issue{{Id: 1}, {Id: 2}, {Id: 3}, {Id: 4}, {Id: 5}, {Id: 6}}
 	})
 
 	JustBeforeEach(func() {
-		f = New(mockRepo, chunkSize)
+		f = NewFlusher(mockRepo, mockEventNotifier, chunkSize)
 		rest = f.Flush(ctx, issues)
 	})
 
@@ -46,8 +50,16 @@ var _ = Describe("Flusher", func() {
 		BeforeEach(func() {
 			gomock.InOrder(
 				mockRepo.EXPECT().AddIssues(ctx, []models.Issue{{Id: 1}, {Id: 2}}).Return([]uint64{1, 2}, nil),
+				mockEventNotifier.EXPECT().Notify(uint64(1), events.Created),
+				mockEventNotifier.EXPECT().Notify(uint64(2), events.Created),
+
 				mockRepo.EXPECT().AddIssues(ctx, []models.Issue{{Id: 3}, {Id: 4}}).Return([]uint64{3, 4}, nil),
+				mockEventNotifier.EXPECT().Notify(uint64(3), events.Created),
+				mockEventNotifier.EXPECT().Notify(uint64(4), events.Created),
+
 				mockRepo.EXPECT().AddIssues(ctx, []models.Issue{{Id: 5}, {Id: 6}}).Return([]uint64{5, 6}, nil),
+				mockEventNotifier.EXPECT().Notify(uint64(5), events.Created),
+				mockEventNotifier.EXPECT().Notify(uint64(6), events.Created),
 			)
 		})
 
@@ -71,9 +83,17 @@ var _ = Describe("Flusher", func() {
 		BeforeEach(func() {
 			gomock.InOrder(
 				mockRepo.EXPECT().AddIssues(ctx, []models.Issue{{Id: 1}, {Id: 2}}).Return([]uint64{1, 2}, nil),
+				mockEventNotifier.EXPECT().Notify(uint64(1), events.Created),
+				mockEventNotifier.EXPECT().Notify(uint64(2), events.Created),
+
 				mockRepo.EXPECT().AddIssues(ctx, []models.Issue{{Id: 3}, {Id: 4}}).Return([]uint64{3, 4}, nil),
+				mockEventNotifier.EXPECT().Notify(uint64(3), events.Created),
+				mockEventNotifier.EXPECT().Notify(uint64(4), events.Created),
+
 				mockRepo.EXPECT().AddIssues(ctx, []models.Issue{{Id: 5}, {Id: 6}}).
-					Return([]uint64{6, 6}, errors.New("failed to save issues")),
+					Return([]uint64{6}, errors.New("failed to save issues")),
+
+				mockEventNotifier.EXPECT().Notify(uint64(6), events.Created),
 			)
 		})
 

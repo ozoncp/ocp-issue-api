@@ -13,9 +13,14 @@ const (
 	Removed
 )
 
+type IssueEventBody struct {
+	IssueId   uint64 `json:"issue_id"`
+	Timestamp int64  `json:"timestamp"`
+}
+
 type IssueEvent struct {
-	Type IssueEventType         `json:"type"`
-	Body map[string]interface{} `json:"body"`
+	Type IssueEventType `json:"type"`
+	Body IssueEventBody `json:"body"`
 }
 
 type EventProducer interface {

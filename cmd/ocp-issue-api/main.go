@@ -60,15 +60,17 @@ func runHttp() error {
 	return http.ListenAndServe(*httpEndpoint, mux)
 }
 
-func runGrpc(repo repo.Repo) error {
+func runGrpc(repo repo.Repo, notifier events.EventNotifier) error {
 	listen, err := net.Listen("tcp", grpcPort)
 
 	if err != nil {
 		return err
 	}
 
+	f := flusher.NewFlusher(repo, notifier, issuesChunkSize)
+
 	server := grpc.NewServer()
-	desc.RegisterOcpIssueApiServer(server, api.New(repo, flusher.New(repo, issuesChunkSize)))
+	desc.RegisterOcpIssueApiServer(server, api.NewApi(repo, f, notifier))
 
 	log.Info().Msgf("gRPC server listening on %s", *grpcEndpoint)
 
@@ -144,7 +146,7 @@ func main() {
 	}()
 
 	go func() {
-		if err = runGrpc(repo.New(db, eventCh)); err != nil {
+		if err = runGrpc(repo.NewRepo(db), events.NewNotifier(eventCh)); err != nil {
 			log.Fatal().Msgf("failed to run gRPC server: %v", err)
 			return
 		}

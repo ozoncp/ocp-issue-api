@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/opentracing/opentracing-go"
+	"github.com/ozoncp/ocp-issue-api/internal/events"
 	"github.com/ozoncp/ocp-issue-api/internal/flusher"
 	"github.com/ozoncp/ocp-issue-api/internal/metrics"
 	"github.com/ozoncp/ocp-issue-api/internal/repo"
@@ -17,6 +18,7 @@ type api struct {
 	desc.UnimplementedOcpIssueApiServer
 	repo    repo.Repo
 	flusher flusher.Flusher
+	notifier events.EventNotifier
 }
 
 func (a *api) ListIssuesV1(ctx context.Context, req *desc.ListIssuesV1Request) (*desc.ListIssuesV1Response, error) {
@@ -61,6 +63,8 @@ func (a *api) CreateIssueV1(ctx context.Context, req *desc.CreateIssueV1Request)
 		log.Error().Msgf("failed to create issue: %v", err)
 		return nil, status.Error(codes.Unknown, err.Error())
 	}
+
+	a.notifier.Notify(issueId, events.Created)
 
 	metrics.IncCreatedIssues()
 
@@ -116,6 +120,8 @@ func (a *api) UpdateIssueV1(ctx context.Context, req *desc.UpdateIssueV1Request)
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
+	a.notifier.Notify(req.IssueId, events.Updated)
+
 	metrics.IncUpdatedIssues()
 
 	return &desc.UpdateIssueV1Response{Found: true}, nil
@@ -141,6 +147,8 @@ func (a *api) RemoveIssueV1(ctx context.Context, req *desc.RemoveIssueV1Request)
 
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
+
+	a.notifier.Notify(req.IssueId, events.Removed)
 
 	metrics.IncRemovedIssues()
 
@@ -176,9 +184,10 @@ func (a *api) MultiCreateIssueV1(ctx context.Context, req *desc.MultiCreateIssue
 	return &desc.MultiCreateIssueV1Response{Created: created}, nil
 }
 
-func New(repo repo.Repo, flusher flusher.Flusher) desc.OcpIssueApiServer {
+func NewApi(repo repo.Repo, flusher flusher.Flusher, notifier events.EventNotifier) desc.OcpIssueApiServer {
 	return &api{
 		repo:    repo,
 		flusher: flusher,
+		notifier: notifier,
 	}
 }

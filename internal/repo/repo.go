@@ -6,10 +6,8 @@ import (
 	"errors"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/opentracing/opentracing-go"
-	"github.com/ozoncp/ocp-issue-api/internal/events"
 	"github.com/ozoncp/ocp-issue-api/internal/models"
 	"github.com/rs/zerolog/log"
-	"time"
 )
 
 type Repo interface {
@@ -25,7 +23,6 @@ const tableName = "issues"
 
 type repo struct {
 	db      *sql.DB
-	eventCh chan events.IssueEvent
 }
 
 func (r *repo) AddIssue(ctx context.Context, issue models.Issue) (uint64, error) {
@@ -39,8 +36,6 @@ func (r *repo) AddIssue(ctx context.Context, issue models.Issue) (uint64, error)
 	if err := query.QueryRowContext(ctx).Scan(&issue.Id); err != nil {
 		return 0, err
 	}
-
-	r.sendEvent(issue.Id, events.Created)
 
 	return issue.Id, nil
 }
@@ -72,7 +67,6 @@ func (r *repo) AddIssues(ctx context.Context, issues []models.Issue) ([]uint64, 
 		err = rows.Scan(&issueId)
 
 		if err == nil {
-			r.sendEvent(issueId, events.Created)
 			issueIds = append(issueIds, issueId)
 		}
 	}
@@ -104,7 +98,6 @@ func (r *repo) UpdateIssue(ctx context.Context, issue models.Issue) error {
 	case 0:
 		return errors.New("issue not found")
 	case 1:
-		r.sendEvent(issue.Id, events.Updated)
 		return nil
 	}
 
@@ -129,7 +122,6 @@ func (r *repo) RemoveIssue(ctx context.Context, issueId uint64) error {
 	case 0:
 		return errors.New("issue not found")
 	case 1:
-		r.sendEvent(issueId, events.Removed)
 		return nil
 	}
 
@@ -184,21 +176,6 @@ func (r *repo) ListIssues(ctx context.Context, limit uint64, offset uint64) ([]m
 	return issues, err
 }
 
-func New(db *sql.DB, eventCh chan events.IssueEvent) Repo {
-	return &repo{
-		db:      db,
-		eventCh: eventCh,
-	}
-}
-
-func (r *repo) sendEvent(issueId uint64, eventType events.IssueEventType) {
-	if r.eventCh != nil {
-		r.eventCh <- events.IssueEvent{
-			Type: eventType,
-			Body: map[string]interface{}{
-				"issue_id":  issueId,
-				"timestamp": time.Now().UTC().Unix(),
-			},
-		}
-	}
+func NewRepo(db *sql.DB) Repo {
+	return &repo{db: db}
 }
