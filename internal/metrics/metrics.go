@@ -2,45 +2,79 @@ package metrics
 
 import "github.com/prometheus/client_golang/prometheus"
 
-var createdIssues = prometheus.NewCounter(
-	prometheus.CounterOpts{
-		Name: "created_issues",
-		Help: "Number of created issues",
-	},
-)
+func newStatusCounters(name string, help string) (prometheus.Counter, prometheus.Counter) {
+	var okCounter = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: name,
+			Help: help,
+			ConstLabels: map[string]string{
+				"status": "ok",
+			},
+		},
+	)
 
-var updatedIssues = prometheus.NewCounter(
-	prometheus.CounterOpts{
-		Name: "updated_issues",
-		Help: "Number of updated issues",
-	},
-)
+	var errorCounter = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: name,
+			Help: help,
+			ConstLabels: map[string]string{
+				"status": "error",
+			},
+		},
+	)
 
-var removedIssues = prometheus.NewCounter(
-	prometheus.CounterOpts{
-		Name: "removed_issues",
-		Help: "Number of removed issues",
-	},
-)
+	return okCounter, errorCounter
+}
+
+var okCreatedIssues, errorCreatedIssues = newStatusCounters("created_issues", "Number of created issues")
+var okUpdatedIssues, errorUpdatedIssues = newStatusCounters("updated_issues", "Number of updated issues")
+var okRemovedIssues, errorRemovedIssues = newStatusCounters("removed_issues", "Number of removed issues")
 
 func RegisterMetrics() {
-	prometheus.MustRegister(createdIssues)
-	prometheus.MustRegister(updatedIssues)
-	prometheus.MustRegister(removedIssues)
+	prometheus.MustRegister(okCreatedIssues, errorCreatedIssues)
+	prometheus.MustRegister(okUpdatedIssues, errorUpdatedIssues)
+	prometheus.MustRegister(okRemovedIssues, errorRemovedIssues)
 }
 
-func AddCreatedIssues(value uint64) {
-	createdIssues.Add(float64(value))
+type Status = uint8
+
+const(
+	Ok Status = iota
+	Error
+)
+
+func AddCreatedIssues(value uint64, status Status) {
+	switch status {
+	case Ok:
+		okCreatedIssues.Add(float64(value))
+	case Error:
+		errorCreatedIssues.Add(float64(value))
+	}
 }
 
-func IncCreatedIssues() {
-	createdIssues.Inc()
+func IncCreatedIssues(status Status) {
+	switch status {
+	case Ok:
+		okCreatedIssues.Inc()
+	case Error:
+		errorCreatedIssues.Inc()
+	}
 }
 
-func IncUpdatedIssues() {
-	updatedIssues.Inc()
+func IncUpdatedIssues(status Status) {
+	switch status {
+	case Ok:
+		okUpdatedIssues.Inc()
+	case Error:
+		errorUpdatedIssues.Inc()
+	}
 }
 
-func IncRemovedIssues() {
-	removedIssues.Inc()
+func IncRemovedIssues(status Status) {
+	switch status {
+	case Ok:
+		okRemovedIssues.Inc()
+	case Error:
+		errorRemovedIssues.Inc()
+	}
 }

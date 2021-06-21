@@ -61,12 +61,13 @@ func (a *api) CreateIssueV1(ctx context.Context, req *desc.CreateIssueV1Request)
 
 	if err != nil {
 		log.Error().Msgf("failed to create issue: %v", err)
+		metrics.IncCreatedIssues(metrics.Error)
 		return nil, status.Error(codes.Unknown, err.Error())
 	}
 
 	a.notifier.Notify(issueId, events.Created)
 
-	metrics.IncCreatedIssues()
+	metrics.IncCreatedIssues(metrics.Ok)
 
 	return &desc.CreateIssueV1Response{IssueId: issueId}, nil
 }
@@ -117,12 +118,14 @@ func (a *api) UpdateIssueV1(ctx context.Context, req *desc.UpdateIssueV1Request)
 			Uint64("issue_id", req.IssueId).
 			Msgf("failed to update issue: %v", err)
 
+		metrics.IncUpdatedIssues(metrics.Error)
+
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
 	a.notifier.Notify(req.IssueId, events.Updated)
 
-	metrics.IncUpdatedIssues()
+	metrics.IncUpdatedIssues(metrics.Ok)
 
 	return &desc.UpdateIssueV1Response{Found: true}, nil
 }
@@ -145,12 +148,14 @@ func (a *api) RemoveIssueV1(ctx context.Context, req *desc.RemoveIssueV1Request)
 			Uint64("issue_id", req.IssueId).
 			Msgf("failed to remove issue: %v", err)
 
+		metrics.IncRemovedIssues(metrics.Error)
+
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
 	a.notifier.Notify(req.IssueId, events.Removed)
 
-	metrics.IncRemovedIssues()
+	metrics.IncRemovedIssues(metrics.Ok)
 
 	return &desc.RemoveIssueV1Response{Found: true}, nil
 }
@@ -174,11 +179,12 @@ func (a *api) MultiCreateIssueV1(ctx context.Context, req *desc.MultiCreateIssue
 	if rest != nil {
 		errorMessage := fmt.Sprintf("failed to create %d issues", len(rest))
 		log.Error().Msg(errorMessage)
+		metrics.AddCreatedIssues(uint64(len(rest)), metrics.Error)
 		return nil, status.Error(codes.Unknown, errorMessage)
 	}
 
-	created := uint64(len(req.Issues) - len(rest))
-	metrics.AddCreatedIssues(created)
+	created := uint64(len(req.Issues))
+	metrics.AddCreatedIssues(created, metrics.Ok)
 	span.SetTag("issues-count", created)
 
 	return &desc.MultiCreateIssueV1Response{Created: created}, nil
