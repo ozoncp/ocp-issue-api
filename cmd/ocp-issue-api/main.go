@@ -93,16 +93,15 @@ func runEventProducer(eventCh chan events.IssueEvent) error {
 
 	defer producer.Close()
 
-	for {
-		select {
-		case event := <-eventCh:
-			err = producer.Produce(event)
+	for event := range eventCh {
+		err = producer.Produce(event)
 
-			if err != nil {
-				return err
-			}
+		if err != nil {
+			return err
 		}
 	}
+
+	return nil
 }
 
 func runMetrics() error {
