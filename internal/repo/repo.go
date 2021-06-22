@@ -5,13 +5,14 @@ import (
 	"database/sql"
 	"errors"
 	sq "github.com/Masterminds/squirrel"
+	"github.com/opentracing/opentracing-go"
 	"github.com/ozoncp/ocp-issue-api/internal/models"
 	"github.com/rs/zerolog/log"
 )
 
 type Repo interface {
 	AddIssue(ctx context.Context, issue models.Issue) (uint64, error)
-	AddIssues(ctx context.Context, issues []models.Issue) error
+	AddIssues(ctx context.Context, issues []models.Issue) ([]uint64, error)
 	UpdateIssue(ctx context.Context, issue models.Issue) error
 	RemoveIssue(ctx context.Context, issueId uint64) error
 	DescribeIssue(ctx context.Context, issueId uint64) (*models.Issue, error)
@@ -39,9 +40,13 @@ func (r *repo) AddIssue(ctx context.Context, issue models.Issue) (uint64, error)
 	return issue.Id, nil
 }
 
-func (r *repo) AddIssues(ctx context.Context, issues []models.Issue) error {
+func (r *repo) AddIssues(ctx context.Context, issues []models.Issue) ([]uint64, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "AddIssues")
+	defer span.Finish()
+
 	query := sq.Insert(tableName).
 		Columns("class_room_id", "task_id", "user_id", "deadline").
+		Suffix("RETURNING \"id\"").
 		RunWith(r.db).
 		PlaceholderFormat(sq.Dollar)
 
@@ -49,9 +54,26 @@ func (r *repo) AddIssues(ctx context.Context, issues []models.Issue) error {
 		query = query.Values(issue.ClassroomId, issue.TaskId, issue.UserId, issue.Deadline)
 	}
 
-	_, err := query.ExecContext(ctx)
+	rows, err := query.QueryContext(ctx)
 
-	return err
+	if err != nil {
+		return nil, err
+	}
+
+	var issueIds []uint64
+
+	for rows.Next() {
+		var issueId uint64
+		err = rows.Scan(&issueId)
+
+		if err == nil {
+			issueIds = append(issueIds, issueId)
+		}
+	}
+
+	span.SetTag("issues-count", len(issues))
+
+	return issueIds, err
 }
 
 func (r *repo) UpdateIssue(ctx context.Context, issue models.Issue) error {
@@ -154,8 +176,6 @@ func (r *repo) ListIssues(ctx context.Context, limit uint64, offset uint64) ([]m
 	return issues, err
 }
 
-func New(db *sql.DB) Repo {
-	return &repo{
-		db: db,
-	}
+func NewRepo(db *sql.DB) Repo {
+	return &repo{db: db}
 }

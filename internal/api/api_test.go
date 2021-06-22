@@ -6,8 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/ozoncp/ocp-issue-api/internal/events"
+	"github.com/ozoncp/ocp-issue-api/internal/flusher"
+	"github.com/ozoncp/ocp-issue-api/internal/mocks"
 	"github.com/ozoncp/ocp-issue-api/internal/models"
 	"github.com/ozoncp/ocp-issue-api/internal/repo"
 	desc "github.com/ozoncp/ocp-issue-api/pkg/ocp-issue-api"
@@ -22,6 +26,10 @@ var _ = Describe("Api", func() {
 		db   *sql.DB
 		mock sqlmock.Sqlmock
 
+		ctrl              *gomock.Controller
+		mockEventNotifier *mocks.MockEventNotifier
+
+		r repo.Repo
 		a desc.OcpIssueApiServer
 
 		err error
@@ -29,8 +37,14 @@ var _ = Describe("Api", func() {
 
 	BeforeEach(func() {
 		ctx = context.Background()
+
 		db, mock, _ = sqlmock.New()
-		a = New(repo.New(db))
+
+		ctrl = gomock.NewController(GinkgoT())
+		mockEventNotifier = mocks.NewMockEventNotifier(ctrl)
+
+		r = repo.NewRepo(db)
+		a = NewApi(r, flusher.NewFlusher(r, mockEventNotifier, 3), mockEventNotifier)
 	})
 
 	AfterEach(func() {
@@ -168,6 +182,8 @@ var _ = Describe("Api", func() {
 				mock.ExpectQuery("INSERT INTO issues").
 					WithArgs(req.ClassroomId, req.TaskId, req.UserId, req.Deadline.AsTime()).
 					WillReturnRows(rows)
+
+				mockEventNotifier.EXPECT().Notify(issueId, events.Created)
 			})
 
 			It("", func() {
@@ -210,9 +226,7 @@ var _ = Describe("Api", func() {
 
 		BeforeEach(func() {
 			req = &desc.DescribeIssueV1Request{IssueId: 1}
-
 			rows = sqlmock.NewRows([]string{"id", "classroom_id", "task_id", "user_id", "deadline"})
-
 		})
 
 		JustBeforeEach(func() {
@@ -295,6 +309,8 @@ var _ = Describe("Api", func() {
 			BeforeEach(func() {
 				mock.ExpectExec("UPDATE issues").
 					WillReturnResult(sqlmock.NewResult(0, 1))
+
+				mockEventNotifier.EXPECT().Notify(req.IssueId, events.Updated)
 			})
 
 			It("", func() {
@@ -358,6 +374,8 @@ var _ = Describe("Api", func() {
 				mock.ExpectExec("DELETE FROM issues WHERE").
 					WithArgs(req.IssueId).
 					WillReturnResult(sqlmock.NewResult(0, 1))
+
+				mockEventNotifier.EXPECT().Notify(req.IssueId, events.Removed)
 			})
 
 			It("", func() {
@@ -384,6 +402,88 @@ var _ = Describe("Api", func() {
 				mock.ExpectExec("DELETE FROM issues WHERE").
 					WithArgs(req.IssueId).
 					WillReturnError(errors.New("failed to remove issue"))
+			})
+
+			It("", func() {
+				Expect(err).ShouldNot(BeNil())
+				Expect(res).Should(BeNil())
+			})
+		})
+	})
+
+	Context("MultiCreateIssue", func() {
+		var (
+			req *desc.MultiCreateIssueV1Request
+			res *desc.MultiCreateIssueV1Response
+		)
+
+		BeforeEach(func() {
+			req = &desc.MultiCreateIssueV1Request{
+				Issues: []*desc.CreateIssueV1Request{
+					{ClassroomId: 1, TaskId: 1, UserId: 1, Deadline: timestamppb.New(time.Now())},
+					{ClassroomId: 2, TaskId: 2, UserId: 2, Deadline: timestamppb.New(time.Now())},
+					{ClassroomId: 3, TaskId: 3, UserId: 3, Deadline: timestamppb.New(time.Now())},
+					{ClassroomId: 4, TaskId: 4, UserId: 4, Deadline: timestamppb.New(time.Now())},
+					{ClassroomId: 5, TaskId: 5, UserId: 5, Deadline: timestamppb.New(time.Now())},
+				},
+			}
+		})
+
+		JustBeforeEach(func() {
+			res, err = a.MultiCreateIssueV1(ctx, req)
+		})
+
+		Context("create issues", func() {
+			BeforeEach(func() {
+				mock.ExpectQuery("INSERT INTO issues").
+					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1).AddRow(2).AddRow(3))
+
+				mock.ExpectQuery("INSERT INTO issues").
+					WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(4).AddRow(5))
+
+				gomock.InOrder(
+					mockEventNotifier.EXPECT().Notify(uint64(1), events.Created),
+					mockEventNotifier.EXPECT().Notify(uint64(2), events.Created),
+					mockEventNotifier.EXPECT().Notify(uint64(3), events.Created),
+					mockEventNotifier.EXPECT().Notify(uint64(4), events.Created),
+					mockEventNotifier.EXPECT().Notify(uint64(5), events.Created),
+				)
+			})
+
+			It("", func() {
+				Expect(err).Should(BeNil())
+				Expect(res.Created).Should(BeEquivalentTo(len(req.Issues)))
+			})
+		})
+
+		Context("don't create issues with empty request data", func() {
+			BeforeEach(func() {
+				req = &desc.MultiCreateIssueV1Request{}
+			})
+
+			It("", func() {
+				Expect(err).Should(BeNil())
+				Expect(res.Created).Should(BeEquivalentTo(0))
+			})
+		})
+
+		Context("don't create issues with incomplete request data", func() {
+			BeforeEach(func() {
+				req = &desc.MultiCreateIssueV1Request{
+					Issues: []*desc.CreateIssueV1Request{{}},
+				}
+			})
+
+			It("", func() {
+				Expect(err).ShouldNot(BeNil())
+				Expect(res).Should(BeNil())
+			})
+		})
+
+		Context("failed to create issues", func() {
+			BeforeEach(func() {
+				mock.ExpectQuery("INSERT INTO issues").
+					WillReturnError(errors.New("failed to create issues"))
 			})
 
 			It("", func() {

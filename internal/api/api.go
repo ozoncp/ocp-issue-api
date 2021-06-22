@@ -2,6 +2,11 @@ package api
 
 import (
 	"context"
+	"fmt"
+	"github.com/opentracing/opentracing-go"
+	"github.com/ozoncp/ocp-issue-api/internal/events"
+	"github.com/ozoncp/ocp-issue-api/internal/flusher"
+	"github.com/ozoncp/ocp-issue-api/internal/metrics"
 	"github.com/ozoncp/ocp-issue-api/internal/repo"
 	desc "github.com/ozoncp/ocp-issue-api/pkg/ocp-issue-api"
 	"github.com/rs/zerolog/log"
@@ -11,7 +16,9 @@ import (
 
 type api struct {
 	desc.UnimplementedOcpIssueApiServer
-	repo repo.Repo
+	repo     repo.Repo
+	flusher  flusher.Flusher
+	notifier events.EventNotifier
 }
 
 func (a *api) ListIssuesV1(ctx context.Context, req *desc.ListIssuesV1Request) (*desc.ListIssuesV1Response, error) {
@@ -54,8 +61,13 @@ func (a *api) CreateIssueV1(ctx context.Context, req *desc.CreateIssueV1Request)
 
 	if err != nil {
 		log.Error().Msgf("failed to create issue: %v", err)
+		metrics.IncCreatedIssues(metrics.Error)
 		return nil, status.Error(codes.Unknown, err.Error())
 	}
+
+	a.notifier.Notify(issueId, events.Created)
+
+	metrics.IncCreatedIssues(metrics.Ok)
 
 	return &desc.CreateIssueV1Response{IssueId: issueId}, nil
 }
@@ -106,8 +118,14 @@ func (a *api) UpdateIssueV1(ctx context.Context, req *desc.UpdateIssueV1Request)
 			Uint64("issue_id", req.IssueId).
 			Msgf("failed to update issue: %v", err)
 
+		metrics.IncUpdatedIssues(metrics.Error)
+
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
+
+	a.notifier.Notify(req.IssueId, events.Updated)
+
+	metrics.IncUpdatedIssues(metrics.Ok)
 
 	return &desc.UpdateIssueV1Response{Found: true}, nil
 }
@@ -130,12 +148,52 @@ func (a *api) RemoveIssueV1(ctx context.Context, req *desc.RemoveIssueV1Request)
 			Uint64("issue_id", req.IssueId).
 			Msgf("failed to remove issue: %v", err)
 
+		metrics.IncRemovedIssues(metrics.Error)
+
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
+
+	a.notifier.Notify(req.IssueId, events.Removed)
+
+	metrics.IncRemovedIssues(metrics.Ok)
 
 	return &desc.RemoveIssueV1Response{Found: true}, nil
 }
 
-func New(repo repo.Repo) desc.OcpIssueApiServer {
-	return &api{repo: repo}
+func (a *api) MultiCreateIssueV1(ctx context.Context, req *desc.MultiCreateIssueV1Request) (*desc.MultiCreateIssueV1Response, error) {
+	span, ctx := opentracing.StartSpanFromContext(ctx, "MultiCreateIssue")
+	defer span.Finish()
+
+	log.Debug().
+		Str("request", "MultiCreateIssue").
+		Uint("version", 1).
+		Int("count", len(req.Issues)).
+		Msg("invoke handle")
+
+	if err := req.Validate(); err != nil {
+		return nil, desc.MultiCreateIssueV1RequestValidationError{}
+	}
+
+	rest := a.flusher.Flush(ctx, mapFromMultiCreateIssueRequest(req))
+
+	if rest != nil {
+		errorMessage := fmt.Sprintf("failed to create %d issues", len(rest))
+		log.Error().Msg(errorMessage)
+		metrics.AddCreatedIssues(uint64(len(rest)), metrics.Error)
+		return nil, status.Error(codes.Unknown, errorMessage)
+	}
+
+	created := uint64(len(req.Issues))
+	metrics.AddCreatedIssues(created, metrics.Ok)
+	span.SetTag("issues-count", created)
+
+	return &desc.MultiCreateIssueV1Response{Created: created}, nil
+}
+
+func NewApi(repo repo.Repo, flusher flusher.Flusher, notifier events.EventNotifier) desc.OcpIssueApiServer {
+	return &api{
+		repo:     repo,
+		flusher:  flusher,
+		notifier: notifier,
+	}
 }

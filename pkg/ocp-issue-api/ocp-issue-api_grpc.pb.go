@@ -28,6 +28,8 @@ type OcpIssueApiClient interface {
 	UpdateIssueV1(ctx context.Context, in *UpdateIssueV1Request, opts ...grpc.CallOption) (*UpdateIssueV1Response, error)
 	// Remove the issue
 	RemoveIssueV1(ctx context.Context, in *RemoveIssueV1Request, opts ...grpc.CallOption) (*RemoveIssueV1Response, error)
+	// Create some issues
+	MultiCreateIssueV1(ctx context.Context, in *MultiCreateIssueV1Request, opts ...grpc.CallOption) (*MultiCreateIssueV1Response, error)
 }
 
 type ocpIssueApiClient struct {
@@ -83,6 +85,15 @@ func (c *ocpIssueApiClient) RemoveIssueV1(ctx context.Context, in *RemoveIssueV1
 	return out, nil
 }
 
+func (c *ocpIssueApiClient) MultiCreateIssueV1(ctx context.Context, in *MultiCreateIssueV1Request, opts ...grpc.CallOption) (*MultiCreateIssueV1Response, error) {
+	out := new(MultiCreateIssueV1Response)
+	err := c.cc.Invoke(ctx, "/ocp.issue.api.OcpIssueApi/MultiCreateIssueV1", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OcpIssueApiServer is the server API for OcpIssueApi service.
 // All implementations must embed UnimplementedOcpIssueApiServer
 // for forward compatibility
@@ -97,6 +108,8 @@ type OcpIssueApiServer interface {
 	UpdateIssueV1(context.Context, *UpdateIssueV1Request) (*UpdateIssueV1Response, error)
 	// Remove the issue
 	RemoveIssueV1(context.Context, *RemoveIssueV1Request) (*RemoveIssueV1Response, error)
+	// Create some issues
+	MultiCreateIssueV1(context.Context, *MultiCreateIssueV1Request) (*MultiCreateIssueV1Response, error)
 	mustEmbedUnimplementedOcpIssueApiServer()
 }
 
@@ -118,6 +131,9 @@ func (UnimplementedOcpIssueApiServer) UpdateIssueV1(context.Context, *UpdateIssu
 }
 func (UnimplementedOcpIssueApiServer) RemoveIssueV1(context.Context, *RemoveIssueV1Request) (*RemoveIssueV1Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveIssueV1 not implemented")
+}
+func (UnimplementedOcpIssueApiServer) MultiCreateIssueV1(context.Context, *MultiCreateIssueV1Request) (*MultiCreateIssueV1Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MultiCreateIssueV1 not implemented")
 }
 func (UnimplementedOcpIssueApiServer) mustEmbedUnimplementedOcpIssueApiServer() {}
 
@@ -222,6 +238,24 @@ func _OcpIssueApi_RemoveIssueV1_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OcpIssueApi_MultiCreateIssueV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MultiCreateIssueV1Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OcpIssueApiServer).MultiCreateIssueV1(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ocp.issue.api.OcpIssueApi/MultiCreateIssueV1",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OcpIssueApiServer).MultiCreateIssueV1(ctx, req.(*MultiCreateIssueV1Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OcpIssueApi_ServiceDesc is the grpc.ServiceDesc for OcpIssueApi service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -248,6 +282,10 @@ var OcpIssueApi_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveIssueV1",
 			Handler:    _OcpIssueApi_RemoveIssueV1_Handler,
+		},
+		{
+			MethodName: "MultiCreateIssueV1",
+			Handler:    _OcpIssueApi_MultiCreateIssueV1_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

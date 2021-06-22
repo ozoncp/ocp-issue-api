@@ -281,6 +281,40 @@ func local_request_OcpIssueApi_RemoveIssueV1_0(ctx context.Context, marshaler ru
 
 }
 
+func request_OcpIssueApi_MultiCreateIssueV1_0(ctx context.Context, marshaler runtime.Marshaler, client OcpIssueApiClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq MultiCreateIssueV1Request
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.MultiCreateIssueV1(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_OcpIssueApi_MultiCreateIssueV1_0(ctx context.Context, marshaler runtime.Marshaler, server OcpIssueApiServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq MultiCreateIssueV1Request
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.MultiCreateIssueV1(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 // RegisterOcpIssueApiHandlerServer registers the http handlers for service OcpIssueApi to "mux".
 // UnaryRPC     :call OcpIssueApiServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -399,6 +433,29 @@ func RegisterOcpIssueApiHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		}
 
 		forward_OcpIssueApi_RemoveIssueV1_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("POST", pattern_OcpIssueApi_MultiCreateIssueV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_OcpIssueApi_MultiCreateIssueV1_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_OcpIssueApi_MultiCreateIssueV1_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -543,6 +600,26 @@ func RegisterOcpIssueApiHandlerClient(ctx context.Context, mux *runtime.ServeMux
 
 	})
 
+	mux.Handle("POST", pattern_OcpIssueApi_MultiCreateIssueV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_OcpIssueApi_MultiCreateIssueV1_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_OcpIssueApi_MultiCreateIssueV1_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	return nil
 }
 
@@ -556,6 +633,8 @@ var (
 	pattern_OcpIssueApi_UpdateIssueV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "issues", "issue_id"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_OcpIssueApi_RemoveIssueV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "issues", "issue_id"}, "", runtime.AssumeColonVerbOpt(true)))
+
+	pattern_OcpIssueApi_MultiCreateIssueV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1", "issues", "multi"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
@@ -568,4 +647,6 @@ var (
 	forward_OcpIssueApi_UpdateIssueV1_0 = runtime.ForwardResponseMessage
 
 	forward_OcpIssueApi_RemoveIssueV1_0 = runtime.ForwardResponseMessage
+
+	forward_OcpIssueApi_MultiCreateIssueV1_0 = runtime.ForwardResponseMessage
 )
